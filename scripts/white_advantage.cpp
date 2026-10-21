@@ -104,7 +104,6 @@ class FileReader {
     // gets the next 1 MB-ish block of text, returns false at end of file
     bool readChunk(string &chunk) {
         if (!compressed) {
-<<<<<<< HEAD
             int n = fread(outBuffer.data(), 1, outBuffer.size(), file);
             if (n <= 0) return false;
             chunk.assign(outBuffer.data(), n);
@@ -141,56 +140,6 @@ class FileReader {
                 return true;
             }
         }
-=======
-           int n = fread(outBuffer.data(), 1, outBuffer.size(), file);
-           if (n <= 0) return false;
-           chunk.assign(outBuffer.data(), n);
-           return true;
-       }
-       while (true) {
-           // zstd has used up all the compressed bytes we gave it, so read more from the file
-           if (input.pos == input.size) {
-               int n = fread(inBuffer.data(), 1, inBuffer.size(), file);
-               if (n > 0) {
-                   input.src = inBuffer.data();
-                   input.size = n;
-                   input.pos = 0;
-               } else {
-                   // End of file: drain anything zstd still has buffered internally.
-                   // Call decompressStream once with empty input; if it writes nothing
-                   // and reports the frame is complete (return 0), we're truly done.
-                   ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
-                   ZSTD_inBuffer empty = {nullptr, 0, 0};
-                   size_t ret = ZSTD_decompressStream(zstd, &output, &empty);
-                   if (output.pos > 0) {
-                       chunk.assign(outBuffer.data(), output.pos);
-                       return true;
-                   }
-                   if (ZSTD_isError(ret)) {
-                       cerr << "zstd decompress error at EOF: "
-                            << ZSTD_getErrorName(ret) << "\n";
-                   }
-                   else if (ret != 0) {
-                       // ret > 0 means zstd expected more input — the file was truncated
-                       cerr << "zstd: input ended mid-frame (file truncated)\n";
-                   }
-                   return false;
-               }
-           }
-           // unzip into outBuffer; output.pos tells us how many bytes it wrote
-           ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
-           size_t ret = ZSTD_decompressStream(zstd, &output, &input);
-           if (ZSTD_isError(ret)) {
-               cerr << "zstd decompress error: " << ZSTD_getErrorName(ret) << "\n";
-               return false;
-           }
-           // sometimes it needs more input before it can write anything, so loop again
-           if (output.pos > 0) {
-               chunk.assign(outBuffer.data(), output.pos);
-               return true;
-           }
-       }
->>>>>>> 4b0d8f259bcda47b669a9a2511a963df0f526fad
     }
 
 public:
