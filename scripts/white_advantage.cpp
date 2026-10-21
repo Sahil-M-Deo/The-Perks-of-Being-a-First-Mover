@@ -14,13 +14,16 @@
 
 using namespace std;
 
-// settings (can be changed from the command line)
-int BAND_WIDTH = 100;
-int MAX_DIFF = 100;
-int MIN_RATING = 0;
+// settings
+const int BAND_WIDTH = 100;   // rating brackets are [1500,1600), [1600,1700), ...
+const int MAX_DIFF = 100;     // skip games where the rating gap is bigger than this
+const int MIN_GAMES = 1000;   // don't show brackets with fewer games than this
+
+const string CSV_FILE = "output.csv";   // results table, saved in the folder you run from
+
+// can be changed from the command line
 int MAX_GAMES = 0;
-int MIN_GAMES = 1000;
-string CSV_FILE = "";
+string REPORT_FILE = "";   // numbers for the LaTeX report, see writeReport()
 
 const int MAX_RATING = 4000;
 
@@ -49,7 +52,7 @@ int numDiffs() { return 2 * MAX_DIFF + 1; }
 struct Stats {
     v3d games, halfPoints;
     int seen = 0, used = 0;
-    int noResult = 0, abandoned = 0, noRating = 0, lowRating = 0, bigGap = 0;
+    int noResult = 0, abandoned = 0, noRating = 0, bigGap = 0;
 
     Stats() {
         games = v3d(NUM_SPEEDS, v2d(numBands(), v1d(numDiffs(), 0)));
@@ -68,7 +71,6 @@ struct Stats {
         noResult += other.noResult;
         abandoned += other.abandoned;
         noRating += other.noRating;
-        lowRating += other.lowRating;
         bigGap += other.bigGap;
     }
 };
@@ -77,8 +79,8 @@ struct Stats {
    Reads a .pgn or .pgn.zst file line by line.
 
    Lichess gives out its game files compressed with zstd (.zst). A month is
-   ~30 GB compressed and ~200 GB uncompressed, so instead of unzipping it to
-   disk first we unzip it in memory as we read it, 1 MB at a time.
+   tens of GB compressed and much bigger unzipped, so instead of unzipping it
+   to disk first we unzip it in memory as we read it, 1 MB at a time.
 
    How the zstd library works here:
      - ZSTD_DCtx is the "decompressor". It remembers where it is in the file
@@ -111,10 +113,23 @@ class FileReader {
             // zstd has used up all the compressed bytes we gave it, so read more from the file
             if (input.pos == input.size) {
                 int n = fread(inBuffer.data(), 1, inBuffer.size(), file);
-                if (n <= 0) return false;
-                input.src = inBuffer.data();
-                input.size = n;
-                input.pos = 0;
+                if (n > 0) {
+                    input.src = inBuffer.data();
+                    input.size = n;
+                    input.pos = 0;
+                }
+                else {
+                    /*
+                       end of the file, but zstd might still be holding some unzipped
+                       text inside it, so ask for that before stopping
+                    */
+                    ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
+                    ZSTD_inBuffer empty = {nullptr, 0, 0};
+                    ZSTD_decompressStream(zstd, &output, &empty);
+                    if (output.pos == 0) return false;
+                    chunk.assign(outBuffer.data(), output.pos);
+                    return true;
+                }
             }
             // unzip into outBuffer; output.pos tells us how many bytes it wrote
             ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
@@ -134,8 +149,10 @@ public:
         outBuffer.resize(1 << 20);
         if (compressed) {
             zstd = ZSTD_createDCtx();
-            // Lichess files are compressed with a bigger "window" than zstd allows by
-            // default, so without this line it refuses to unzip them
+            /*
+               Lichess files are compressed with a bigger "window" than zstd allows by
+               default, so without this line it refuses to unzip them
+            */
             ZSTD_DCtx_setParameter(zstd, ZSTD_d_windowLogMax, 31);
             inBuffer.resize(1 << 20);
             input = {inBuffer.data(), 0, 0};
@@ -217,7 +234,6 @@ void addGame(Game &g, Stats &stats) {
     if (g.result == NO_RESULT) { stats.noResult++; return; }
     if (g.abandoned) { stats.abandoned++; return; }
     if (g.whiteRating == -1 || g.blackRating == -1) { stats.noRating++; return; }
-    if (min(g.whiteRating, g.blackRating) < MIN_RATING) { stats.lowRating++; return; }
 
     int diff = g.whiteRating - g.blackRating;
     if (abs(diff) > MAX_DIFF) { stats.bigGap++; return; }
@@ -257,8 +273,10 @@ void processFile(string path, Stats &stats) {
             else if (key == "Termination") game.abandoned = (value == "Abandoned");
         }
         else if (game.hasHeaders) {
-            // reached the moves, so we have all the headers for this game.
-            // we don't need the moves themselves, so we just skip them
+            /*
+               reached the moves, so we have all the headers for this game.
+               we don't need the moves themselves, so we just skip them
+            */
             addGame(game, stats);
             game = Game();
             if (MAX_GAMES > 0 && stats.seen >= MAX_GAMES) return;
@@ -325,21 +343,47 @@ Result fitWhiteAdvantage(v1d &games, v1d &halfPoints) {
     return r;
 }
 
+// "[1500,1600)" for bracket b
+string bandName(int b) {
+    int low = b * BAND_WIDTH;
+    return "[" + to_string(low) + "," + to_string(low + BAND_WIDTH) + ")";
+}
+
+// h for one speed, all brackets added together
+Result fitSpeed(Stats &stats, int s) {
+    v1d games(numDiffs(), 0), points(numDiffs(), 0);
+    for (int b = 0; b < numBands(); b++)
+        for (int d = 0; d < numDiffs(); d++) {
+            games[d] += stats.games[s][b][d];
+            points[d] += stats.halfPoints[s][b][d];
+        }
+    return fitWhiteAdvantage(games, points);
+}
+
+// h for everything: all speeds and all brackets
+Result fitAll(Stats &stats) {
+    v1d games(numDiffs(), 0), points(numDiffs(), 0);
+    for (int s = 0; s < NUM_SPEEDS; s++)
+        for (int b = 0; b < numBands(); b++)
+            for (int d = 0; d < numDiffs(); d++) {
+                games[d] += stats.games[s][b][d];
+                points[d] += stats.halfPoints[s][b][d];
+            }
+    return fitWhiteAdvantage(games, points);
+}
+
 FILE *csv = nullptr;
 
 void printRow(string speed, string band, Result r) {
     printf("%-15s%-14s%12lld%8.3f%10.3f%+10.3f%+10.1f%8.1f\n", speed.c_str(), band.c_str(),
            r.games, r.score, r.expected, r.score - r.expected, r.h, 1.96 * r.error);
-    if (CSV_FILE != "")
-        fprintf(csv, "%s,%s,%lld,%.6f,%.6f,%.6f,%.4f,%.4f\n", speed.c_str(), band.c_str(),
-                r.games, r.score, r.expected, r.score - r.expected, r.h, r.error);
+    fprintf(csv, "%s,\"%s\",%lld,%.6f,%.6f,%.6f,%.4f,%.4f\n", speed.c_str(), band.c_str(),
+            r.games, r.score, r.expected, r.score - r.expected, r.h, r.error);
 }
 
 void printResults(Stats &stats) {
-    if (CSV_FILE != "") {
-        csv = fopen(CSV_FILE.c_str(), "w");
-        fprintf(csv, "speed,band,games,score,expected,residual,h_points,h_error\n");
-    }
+    csv = fopen(CSV_FILE.c_str(), "w");
+    fprintf(csv, "speed,band,games,score,expected,residual,h_points,h_error\n");
 
     cout << "\nWhite advantage, adjusted for rating gap\n"
          << "  score    = white's actual average score\n"
@@ -351,52 +395,209 @@ void printResults(Stats &stats) {
     cout << string(87, '-') << "\n";
 
     // overall row: all speeds and brackets together
-    v1d allGames(numDiffs(), 0), allPoints(numDiffs(), 0);
-    for (int s = 0; s < NUM_SPEEDS; s++)
-        for (int b = 0; b < numBands(); b++)
-            for (int d = 0; d < numDiffs(); d++) {
-                allGames[d] += stats.games[s][b][d];
-                allPoints[d] += stats.halfPoints[s][b][d];
-            }
-    printRow("All", "all", fitWhiteAdvantage(allGames, allPoints));
+    printRow("All", "all", fitAll(stats));
 
     // then for each speed: one row for all brackets, then one row per bracket
     for (int s = 0; s < NUM_SPEEDS; s++) {
-        v1d speedGames(numDiffs(), 0), speedPoints(numDiffs(), 0);
-        for (int b = 0; b < numBands(); b++)
-            for (int d = 0; d < numDiffs(); d++) {
-                speedGames[d] += stats.games[s][b][d];
-                speedPoints[d] += stats.halfPoints[s][b][d];
-            }
-        Result total = fitWhiteAdvantage(speedGames, speedPoints);
+        Result total = fitSpeed(stats, s);
         if (total.games < MIN_GAMES) continue;
         printRow(speedNames[s], "all", total);
 
         for (int b = 0; b < numBands(); b++) {
             Result r = fitWhiteAdvantage(stats.games[s][b], stats.halfPoints[s][b]);
             if (r.games < MIN_GAMES) continue;
-            int low = b * BAND_WIDTH;
-            string band = "[" + to_string(low) + "," + to_string(low + BAND_WIDTH) + ")";
-            printRow(speedNames[s], band, r);
+            printRow(speedNames[s], bandName(b), r);
         }
     }
 
-    if (CSV_FILE != "") {
-        fclose(csv);
-        cout << "\nSaved " << CSV_FILE << "\n";
+    fclose(csv);
+    cout << "\nSaved " << CSV_FILE << "\n";
+}
+
+/*
+   Writing the numbers for the LaTeX report.
+
+   report.tex does \input{report_numbers.tex}, and this writes that file:
+   one \newcommand per number (e.g. \GamesRead), the rows of the two tables,
+   and the figure as a pgfplots chart. So after running this program you only
+   need to run pdflatex to get the finished report.
+*/
+
+// 1234567 -> "1,234,567"
+string withCommas(int n) {
+    string s = to_string(n), out = "";
+    int digits = 0;
+    for (int i = (int)s.size() - 1; i >= 0; i--) {
+        out = s[i] + out;
+        digits++;
+        if (digits % 3 == 0 && i > 0) out = "," + out;
     }
+    return out;
+}
+
+// number with a fixed number of decimals, e.g. num(35.04, 1, true) -> "+35.0"
+string num(double x, int decimals, bool plusSign = false) {
+    string format = "%." + to_string(decimals) + "f";
+    if (plusSign) format = "%+." + to_string(decimals) + "f";
+    char buf[64];
+    snprintf(buf, sizeof(buf), format.c_str(), x);
+    return buf;
+}
+
+// pulls "2024-01" out of "lichess_db_standard_rated_2024-01.pgn.zst"
+string monthOf(string path) {
+    for (int i = 0; i + 7 <= (int)path.size(); i++) {
+        string s = path.substr(i, 7);
+        if (isdigit(s[0]) && isdigit(s[1]) && isdigit(s[2]) && isdigit(s[3]) && s[4] == '-' &&
+            isdigit(s[5]) && isdigit(s[6]))
+            return s;
+    }
+    // no date in the name, so just use the name ('_' has to be escaped in LaTeX)
+    string out = "";
+    for (char c : path) {
+        if (c == '_') out += "\\_";
+        else out += c;
+    }
+    return out;
+}
+
+string percent(int part, int whole) {
+    return num(100.0 * part / whole, 1) + "\\%";
+}
+
+void macro(FILE *f, string name, string value) {
+    fprintf(f, "\\newcommand{\\%s}{%s}\n", name.c_str(), value.c_str());
+}
+
+void writeReport(Stats &total, vector<string> &files, vector<Stats> &perFile) {
+    FILE *f = fopen(REPORT_FILE.c_str(), "w");
+    fprintf(f, "%% written by white_advantage (--report), don't edit by hand\n");
+
+    // dataset size and cleaning
+    string months = "";
+    for (int i = 0; i < (int)files.size(); i++) {
+        if (i > 0) months += (i == (int)files.size() - 1) ? " and " : ", ";
+        months += monthOf(files[i]);
+    }
+    macro(f, "MonthList", months);
+    macro(f, "GamesRead", withCommas(total.seen));
+    macro(f, "GamesUsed", withCommas(total.used));
+    macro(f, "PctUsed", percent(total.used, total.seen));
+    macro(f, "SkipNoResult", withCommas(total.noResult));
+    macro(f, "SkipAbandoned", withCommas(total.abandoned));
+    macro(f, "SkipNoRating", withCommas(total.noRating));
+    macro(f, "SkipGap", withCommas(total.bigGap));
+
+    string fileRows = "";
+    for (int i = 0; i < (int)files.size(); i++)
+        fileRows += monthOf(files[i]) + " & " + withCommas(perFile[i].seen) + " & " +
+                    withCommas(perFile[i].used) + " & " + percent(perFile[i].used, perFile[i].seen) +
+                    " \\\\\n";
+    macro(f, "FileRows", fileRows);
+
+    // overall result
+    Result all = fitAll(total);
+    macro(f, "ScoreAll", num(all.score, 3));
+    macro(f, "ExpectedAll", num(all.expected, 3));
+    macro(f, "HAll", num(all.h, 1, true));
+    macro(f, "HAllCI", num(1.96 * all.error, 1));
+
+    // speeds with enough games, the one with the most games first
+    vector<pair<int, int>> speeds;  // (games, speed)
+    for (int s = 0; s < NUM_SPEEDS; s++) {
+        Result r = fitSpeed(total, s);
+        if (r.games >= MIN_GAMES) speeds.push_back({r.games, s});
+    }
+    sort(speeds.begin(), speeds.end(), greater<pair<int, int>>());
+
+    string speedRows = "";
+    for (int i = 0; i < (int)speeds.size(); i++) {
+        int s = speeds[i].second;
+        Result r = fitSpeed(total, s);
+        speedRows += speedNames[s] + " & " + withCommas(r.games) + " & " + num(r.score, 3) + " & " +
+                     num(r.expected, 3) + " & $" + num(r.h, 1, true) + " \\pm " +
+                     num(1.96 * r.error, 1) + "$ \\\\\n";
+    }
+    macro(f, "SpeedRows", speedRows);
+
+    /*
+       smallest and largest h across the brackets of the most played speed.
+       on a tiny test run (--max-games) no bracket may have enough games, then these stay "--"
+    */
+    int top = 0;
+    for (int s = 0; s < NUM_SPEEDS; s++)
+        if (fitSpeed(total, s).games > fitSpeed(total, top).games) top = s;
+    int count = 0, minBand = 0, maxBand = 0;
+    double minH = 1e18, maxH = -1e18;
+    for (int b = 0; b < numBands(); b++) {
+        Result r = fitWhiteAdvantage(total.games[top][b], total.halfPoints[top][b]);
+        if (r.games < MIN_GAMES) continue;
+        count++;
+        if (r.h < minH) { minH = r.h; minBand = b; }
+        if (r.h > maxH) { maxH = r.h; maxBand = b; }
+    }
+    string hMin = "--", hMax = "--", hMinBand = "--", hMaxBand = "--";
+    if (count > 0) {
+        hMin = num(minH, 1, true);
+        hMax = num(maxH, 1, true);
+        hMinBand = bandName(minBand);
+        hMaxBand = bandName(maxBand);
+    }
+    macro(f, "MainSpeed", speedNames[top]);
+    macro(f, "MainBands", to_string(count));
+    macro(f, "HMin", hMin);
+    macro(f, "HMinBand", hMinBand);
+    macro(f, "HMax", hMax);
+    macro(f, "HMaxBand", hMaxBand);
+
+    /*
+       figure: h for every bracket, one line per speed (the 3 most played speeds),
+       with the 95% CI as error bars. pgfplots draws it inside LaTeX.
+    */
+    string colors[3] = {"blue!70!black", "orange!90!black", "green!50!black"};
+    string fig = "\\begin{tikzpicture}\n"
+                 "\\begin{axis}[width=\\linewidth, height=5.8cm, grid=major, grid style={gray!25},\n"
+                 "  xlabel={Rating bracket (average of both players)}, ylabel={$h$ (rating points)},\n"
+                 "  legend style={draw=none, font=\\small, at={(0.5,1.02)}, anchor=south}, legend columns=3,\n"
+                 "  tick label style={font=\\small},\n"
+                 "  label style={font=\\small}, xticklabel style={/pgf/number format/1000 sep={}},\n"
+                 "  extra y ticks={0}, extra y tick labels={}, extra y tick style={grid=major, major grid style={gray}}]\n";
+    for (int i = 0; i < (int)speeds.size() && i < 3; i++) {
+        int s = speeds[i].second;
+        fig += "\\addplot+[" + colors[i] + ", mark=*, mark size=1.3pt, mark options={fill=" + colors[i] +
+               "}, error bars/.cd, y dir=both, y explicit, error bar style={" + colors[i] + "}] coordinates {\n";
+        for (int b = 0; b < numBands(); b++) {
+            Result r = fitWhiteAdvantage(total.games[s][b], total.halfPoints[s][b]);
+            if (r.games < MIN_GAMES) continue;
+            int middle = b * BAND_WIDTH + BAND_WIDTH / 2;
+            fig += "(" + to_string(middle) + "," + num(r.h, 2) + ") +- (0," + num(1.96 * r.error, 2) + ")\n";
+        }
+        fig += "};\n\\addlegendentry{" + speedNames[s] + "}\n";
+    }
+    fig += "\\end{axis}\n\\end{tikzpicture}";
+    macro(f, "Figure", fig);
+
+    fclose(f);
+    cout << "Saved " << REPORT_FILE << "\n";
+
+    /*
+       build the PDF too. report.tex is in the same folder as report_numbers.tex,
+       so go there and run pdflatex (needs LaTeX with pgfplots installed)
+    */
+    string folder = ".";
+    int slash = REPORT_FILE.rfind('/');
+    if (slash != string::npos) folder = REPORT_FILE.substr(0, slash);
+    string command = "cd " + folder + " && pdflatex -interaction=nonstopmode -jobname=checkpointOne report.tex > /dev/null";
+    if (system(command.c_str()) == 0) cout << "Saved " << folder << "/checkpointOne.pdf\n";
+    else cout << "Couldn't build the PDF (is pdflatex installed?), see " << folder << "/checkpointOne.log\n";
 }
 
 signed main(signed argc, char *argv[]) {
     vector<string> files;
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
-        if (arg == "--band-width" && i + 1 < argc) BAND_WIDTH = atoi(argv[++i]);
-        else if (arg == "--max-diff" && i + 1 < argc) MAX_DIFF = atoi(argv[++i]);
-        else if (arg == "--min-rating" && i + 1 < argc) MIN_RATING = atoi(argv[++i]);
-        else if (arg == "--max-games" && i + 1 < argc) MAX_GAMES = atoll(argv[++i]);
-        else if (arg == "--min-games" && i + 1 < argc) MIN_GAMES = atoll(argv[++i]);
-        else if (arg == "--csv" && i + 1 < argc) CSV_FILE = argv[++i];
+        if (arg == "--max-games" && i + 1 < argc) MAX_GAMES = atoll(argv[++i]);
+        else if (arg == "--report" && i + 1 < argc) REPORT_FILE = argv[++i];
         else files.push_back(arg);
     }
     if (files.empty()) {
@@ -423,9 +624,9 @@ signed main(signed argc, char *argv[]) {
     cout << "  skipped (no result): " << total.noResult << "\n";
     cout << "  skipped (abandoned): " << total.abandoned << "\n";
     cout << "  skipped (missing rating): " << total.noRating << "\n";
-    cout << "  skipped (below min rating): " << total.lowRating << "\n";
     cout << "  skipped (rating gap too big): " << total.bigGap << "\n";
 
     printResults(total);
+    if (REPORT_FILE != "") writeReport(total, files, stats);
     return 0;
 }

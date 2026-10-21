@@ -1,0 +1,7 @@
+raw_data/*.pgn
+raw_data/*.pgn.zst
+*.pgn.zst
+scripts/white_advantage
+*.aux
+*.log
+*.out

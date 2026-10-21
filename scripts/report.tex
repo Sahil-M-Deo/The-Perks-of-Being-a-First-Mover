@@ -1,0 +1,162 @@
+% Checkpoint 1 report. The numbers, tables and figure come from report_numbers.tex,
+% which white_advantage writes when run with --report (see scripts/README.md).
+% Build from the repo root:  pdflatex -jobname=checkpointOne report.tex
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=1.8cm,top=1.5cm,bottom=1.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[sc]{mathpazo}
+\linespread{1.03}
+\usepackage{courier}
+\usepackage[scaled=0.9]{helvet}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+
+\titleformat{\section}{\large\sffamily\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\sffamily\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{8pt}{3pt}
+\titlespacing*{\subsection}{0pt}{5pt}{2pt}
+\setlist{itemsep=1pt,topsep=2pt,leftmargin=1.2em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\pagestyle{empty}
+
+% red placeholder for anything not filled in yet
+\newcommand{\TBD}[1]{\textcolor{red}{\textbf{[#1]}}}
+
+\input{report_numbers.tex}
+
+% fill these in by hand
+\newcommand{\Mentor}{Namish Bansal}
+\newcommand{\Repo}{\TBD{GitHub repository link (group repo from Classroom50)}}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries The Perks of Being a First Mover}\\[2pt]
+{\large Does White's Advantage in Chess Grow or Shrink with Rating?}\\[2pt]
+CS215 Open Project \quad$\cdot$\quad Checkpoint 1
+\end{center}
+
+\section{Meta Information}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\textbf{Project title} & The Perks of Being a First Mover \\
+\textbf{Group number} & 02 \\
+\textbf{Mentor} & \Mentor \\
+\textbf{Members} & Sanidhya (25b0944), Daksh Maahor (25b0974), Sahil (25b0991), VadaPavJai (25b1030) \\
+\textbf{Repository} & \Repo \\
+\textbf{Tracking sheet} & \scriptsize\url{https://docs.google.com/spreadsheets/d/1pvTllHR4a1Sl7GHtjKnvLeb-zmmHaM3BjltyaDPX9-Q} \\
+\end{tabularx}
+
+\section{Progress So Far}
+
+\subsection*{Dataset and descriptive statistics}
+\textbf{Source:} Lichess Open Database (\url{https://database.lichess.org}), standard rated games for
+\MonthList, released under the Creative Commons CC0 licence, so it is free to download, use and
+redistribute. Each month is one zstd-compressed PGN file of tens of GB (well over 100 GB once
+decompressed). Every game is one record with about 17 header tags (players, ratings, result, date,
+opening, time control, termination) followed by the move list. We use 6 tags: \texttt{Result},
+\texttt{WhiteElo}, \texttt{BlackElo}, \texttt{Event} (gives the speed), \texttt{TimeControl} and
+\texttt{Termination}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Month & Games read & Games kept & Kept \\
+\midrule
+\FileRows
+\midrule
+Total & \GamesRead & \GamesUsed & \PctUsed \\
+\bottomrule
+\end{tabular}
+\hspace{1.2em}
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+Speed & Games & White score & Expected & $h$ (pts, 95\% CI) \\
+\midrule
+\SpeedRows
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{White score} is White's average score (win 1, draw $\tfrac12$, loss 0); \emph{Expected} is the
+score the two ratings alone predict. Over all kept games White scores \ScoreAll{} against an expected
+\ExpectedAll, which corresponds to $h = \HAll \pm \HAllCI$ rating points. Within \MainSpeed{}, $h$
+ranges from \HMin{} in bracket \HMinBand{} to \HMax{} in \HMaxBand{} across \MainBands{} brackets
+(figure below; brackets with fewer than 1{,}000 games are hidden).
+
+\begin{center}
+\Figure
+\end{center}
+
+\subsection*{Data cleaning steps completed}
+\begin{itemize}
+\item \textbf{Parser:} a C++ program (\texttt{scripts/white\_advantage.cpp}) streams each
+  compressed file through the zstd library in 1\,MB chunks, reads only header lines and skips the
+  moves. Memory stays at a few MB, and the two months are processed in parallel, one thread each.
+ 
+\item \textbf{Removed:} games with no result (\SkipNoResult), abandoned games (\SkipAbandoned),
+  games with a missing or ``?'' rating (\SkipNoRating), and games where the rating gap is over
+  100 points (\SkipGap).
+\item \textbf{Grouped:} by speed (UltraBullet to Correspondence, from the \texttt{Event} tag) and by
+  100-point rating bracket $[a, a{+}100)$ of the \emph{average} of both ratings, so every game falls
+  in exactly one bracket.
+\item \textbf{Aggregated:} instead of exporting one CSV row per game, we store game counts and
+  White's total score for every (speed, bracket, rating gap) cell. This is all the model needs, and
+  it fits in a few MB.
+\item \textbf{Checked:} on synthetic games with a known built-in advantage of $+35$ points, the
+  pipeline recovers $+34.8 \pm 1.7$.
+\end{itemize}
+
+\subsection*{Division and revision of responsibilities}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Member & Responsibility (revised since the proposal: work split equally) \\
+\midrule
+Sanidhya & Statistical modelling: fitting $h$ and its confidence intervals; next, the trend test across brackets. \\
+Daksh Maahor & Data cleaning: filters, speed and rating-bracket grouping; next, separate win/draw rates per bracket. \\
+Sahil & Data engineering: C++ streaming parser for the \texttt{.pgn.zst} files; next, robustness runs across time controls. \\
+VadaPavJai & Visualisation and report: figures and this report; next, the Plotly dashboard. \\
+\bottomrule
+\end{tabularx}
+
+\subsection*{Refined problem statement}
+The proposal compared raw win rates across Elo brackets. Raw win rates are confounded by the rating
+gap: a 1540 who beats a 1570 with White is stronger evidence of a first-move edge than a win between
+two 1570s. We therefore model each game with the Elo expected-score curve plus a White bonus $h$:
+\[
+E = \frac{1}{1 + 10^{-(R_\text{White} + h - R_\text{Black})/400}},
+\]
+and estimate $h$, White's advantage in rating points, by maximum likelihood separately for each speed
+and each 100-point bracket, with a 95\% confidence interval from the likelihood curvature. Draws count
+as half a point. The question becomes: \emph{does $h$ rise to a peak at intermediate ratings and
+fall at 2200+?} We also widened the rating-gap filter from 50 to 100 points, since the model now
+corrects for the gap itself and the wider filter keeps far more games.
+
+For Checkpoint 2: a formal test for a trend in $h$ across brackets, separate win and draw rates per
+bracket (draws rise with rating), robustness across time controls, and a Plotly dashboard.
+
+\subsection*{Tracking spreadsheet}
+Updated with Checkpoint 1 rows (meta information, dataset, cleaning, revised roles, refined problem
+statement); the mentor has edit access. Link in Section 1.
+
+\subsection*{Blockers and challenges}
+\begin{itemize}
+\item \textbf{Raw data can't go on GitHub.} The guidelines ask us to push data files, but each
+  monthly file is tens of GB, far above GitHub's limits (100 MB per file, 2 GB with Git LFS on the
+  free plan). We are pushing the aggregated output (\texttt{output/summary.txt},
+  \texttt{output/output.csv}) and the exact download links instead. Is this acceptable?
+\item The two concerns from our proposal are resolved: streaming the files avoids the memory limit,
+  and draws are handled as half a point inside the model.
+\end{itemize}
+
+\end{document}
