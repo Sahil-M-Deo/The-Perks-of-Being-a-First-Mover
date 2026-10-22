@@ -1,22 +1,125 @@
-% placeholder: white_advantage --report report_numbers.tex replaces this file with the real numbers
-\newcommand{\MonthList}{\TBD{MonthList}}
-\newcommand{\GamesRead}{\TBD{GamesRead}}
-\newcommand{\GamesUsed}{\TBD{GamesUsed}}
-\newcommand{\PctUsed}{\TBD{PctUsed}}
-\newcommand{\SkipNoResult}{\TBD{SkipNoResult}}
-\newcommand{\SkipAbandoned}{\TBD{SkipAbandoned}}
-\newcommand{\SkipNoRating}{\TBD{SkipNoRating}}
-\newcommand{\SkipGap}{\TBD{SkipGap}}
-\newcommand{\ScoreAll}{\TBD{ScoreAll}}
-\newcommand{\ExpectedAll}{\TBD{ExpectedAll}}
-\newcommand{\HAll}{\TBD{HAll}}
-\newcommand{\HAllCI}{\TBD{HAllCI}}
-\newcommand{\MainSpeed}{\TBD{MainSpeed}}
-\newcommand{\MainBands}{\TBD{MainBands}}
-\newcommand{\HMin}{\TBD{HMin}}
-\newcommand{\HMinBand}{\TBD{HMinBand}}
-\newcommand{\HMax}{\TBD{HMax}}
-\newcommand{\HMaxBand}{\TBD{HMaxBand}}
-\newcommand{\FileRows}{\multicolumn{4}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\SpeedRows}{\multicolumn{5}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\Figure}{\fbox{\parbox[c][3.5cm][c]{0.95\linewidth}{\centering\TBD{figure: h by rating bracket, drawn by white\_advantage}}}}
+% rebuilt from the printed run output (values rounded as printed)
+\newcommand{\MonthList}{2024-01 and 2024-02}
+\newcommand{\GamesRead}{190,562,735}
+\newcommand{\GamesUsed}{162,175,412}
+\newcommand{\PctUsed}{85.1\%}
+\newcommand{\SkipNoResult}{6,007}
+\newcommand{\SkipAbandoned}{502,851}
+\newcommand{\SkipNoRating}{0}
+\newcommand{\SkipGap}{27,878,465}
+\newcommand{\FileRows}{2024-01 & 98,994,760 & 84,177,790 & 85.0\% \\
+2024-02 & 91,567,975 & 77,997,622 & 85.2\% \\
+}
+\newcommand{\ScoreAll}{0.517}
+\newcommand{\ExpectedAll}{0.500}
+\newcommand{\HAll}{+11.9}
+\newcommand{\HAllCI}{0.1}
+\newcommand{\SpeedRows}{Blitz & 77,918,475 & 0.518 & 0.500 & $+12.8 \pm 0.1$ \\
+Bullet & 59,945,392 & 0.514 & 0.500 & $+9.9 \pm 0.1$ \\
+Rapid & 22,650,621 & 0.520 & 0.500 & $+14.2 \pm 0.1$ \\
+Classical & 857,174 & 0.519 & 0.500 & $+13.4 \pm 0.7$ \\
+UltraBullet & 722,976 & 0.513 & 0.500 & $+9.1 \pm 0.8$ \\
+Correspondence & 80,774 & 0.504 & 0.500 & $+2.8 \pm 2.4$ \\
+}
+\newcommand{\MainSpeed}{Blitz}
+\newcommand{\MainBands}{26}
+\newcommand{\HMin}{+5.6}
+\newcommand{\HMinBand}{[400,500)}
+\newcommand{\HMax}{+24.8}
+\newcommand{\HMaxBand}{[2800,2900)}
+\newcommand{\Figure}{\begin{tikzpicture}
+\begin{axis}[width=\linewidth, height=5.8cm, grid=major, grid style={gray!25},
+  xlabel={Rating bracket (average of both players)}, ylabel={$h$ (rating points)},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south}, legend columns=3,
+  tick label style={font=\small},
+  label style={font=\small}, xticklabel style={/pgf/number format/1000 sep={}},
+  extra y ticks={0}, extra y tick labels={}, extra y tick style={grid=major, major grid style={gray}}]
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}, error bars/.cd, y dir=both, y explicit, error bar style={blue!70!black}] coordinates {
+(450,5.60) +- (0,7.50)
+(550,8.30) +- (0,3.20)
+(650,11.30) +- (0,1.60)
+(750,12.60) +- (0,1.00)
+(850,13.30) +- (0,0.70)
+(950,14.10) +- (0,0.50)
+(1050,14.60) +- (0,0.40)
+(1150,14.00) +- (0,0.30)
+(1250,13.40) +- (0,0.30)
+(1350,12.90) +- (0,0.30)
+(1450,12.30) +- (0,0.30)
+(1550,12.50) +- (0,0.20)
+(1650,12.10) +- (0,0.20)
+(1750,12.00) +- (0,0.20)
+(1850,11.80) +- (0,0.20)
+(1950,12.00) +- (0,0.30)
+(2050,12.60) +- (0,0.30)
+(2150,14.30) +- (0,0.40)
+(2250,16.60) +- (0,0.50)
+(2350,16.90) +- (0,0.80)
+(2450,18.80) +- (0,1.10)
+(2550,18.90) +- (0,1.80)
+(2650,19.10) +- (0,2.90)
+(2750,16.20) +- (0,6.20)
+(2850,24.80) +- (0,9.40)
+(2950,10.00) +- (0,4.60)
+};
+\addlegendentry{Blitz}
+\addplot+[orange!90!black, mark=*, mark size=1.3pt, mark options={fill=orange!90!black}, error bars/.cd, y dir=both, y explicit, error bar style={orange!90!black}] coordinates {
+(450,7.20) +- (0,13.80)
+(550,9.50) +- (0,5.90)
+(650,9.00) +- (0,2.70)
+(750,11.70) +- (0,1.40)
+(850,9.90) +- (0,0.90)
+(950,8.80) +- (0,0.70)
+(1050,8.50) +- (0,0.50)
+(1150,7.90) +- (0,0.40)
+(1250,7.50) +- (0,0.40)
+(1350,7.70) +- (0,0.40)
+(1450,7.30) +- (0,0.30)
+(1550,7.90) +- (0,0.30)
+(1650,8.60) +- (0,0.30)
+(1750,9.40) +- (0,0.30)
+(1850,9.90) +- (0,0.30)
+(1950,10.80) +- (0,0.30)
+(2050,11.50) +- (0,0.30)
+(2150,12.60) +- (0,0.40)
+(2250,14.40) +- (0,0.40)
+(2350,16.30) +- (0,0.50)
+(2450,17.60) +- (0,0.70)
+(2550,17.60) +- (0,1.00)
+(2650,15.20) +- (0,1.30)
+(2750,17.90) +- (0,1.90)
+(2850,17.90) +- (0,2.60)
+(2950,15.50) +- (0,2.90)
+(3050,19.90) +- (0,6.20)
+(3150,13.80) +- (0,12.90)
+};
+\addlegendentry{Bullet}
+\addplot+[green!50!black, mark=*, mark size=1.3pt, mark options={fill=green!50!black}, error bars/.cd, y dir=both, y explicit, error bar style={green!50!black}] coordinates {
+(450,11.80) +- (0,8.90)
+(550,10.60) +- (0,4.00)
+(650,13.70) +- (0,2.20)
+(750,13.50) +- (0,1.40)
+(850,14.20) +- (0,1.00)
+(950,15.00) +- (0,0.80)
+(1050,16.00) +- (0,0.60)
+(1150,16.10) +- (0,0.60)
+(1250,15.70) +- (0,0.50)
+(1350,15.60) +- (0,0.50)
+(1450,12.80) +- (0,0.50)
+(1550,14.00) +- (0,0.40)
+(1650,13.60) +- (0,0.40)
+(1750,13.40) +- (0,0.50)
+(1850,13.30) +- (0,0.50)
+(1950,13.60) +- (0,0.60)
+(2050,13.10) +- (0,0.70)
+(2150,14.10) +- (0,1.10)
+(2250,15.40) +- (0,1.70)
+(2350,18.70) +- (0,2.80)
+(2450,19.70) +- (0,4.90)
+(2550,14.90) +- (0,10.30)
+(2650,15.90) +- (0,19.50)
+(2950,8.50) +- (0,6.80)
+};
+\addlegendentry{Rapid}
+\end{axis}
+\end{tikzpicture}}
