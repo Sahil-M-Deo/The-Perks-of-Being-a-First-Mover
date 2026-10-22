@@ -1,7 +1,12 @@
+# raw Lichess files are tens of GB, never commit them
 raw_data/*.pgn
 raw_data/*.pgn.zst
 *.pgn.zst
+
+# compiled program
 scripts/white_advantage
+
+# LaTeX build leftovers
 *.aux
 *.log
 *.out
