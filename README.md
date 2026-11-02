@@ -1,7 +1,7 @@
 # Group 02: The Perks of Being a First Mover
 
 **Does White's advantage in chess grow or shrink with rating, and with the opening?**
-CS215 Open Project, Group 02. Mentor: Namish Bansal.
+CS215 Open Project, Group 02 Mentor: Namish Bansal.
 
 Sanidhya (25b0944), Daksh Maahor (25b0974), Sahil (25b0991), VadaPavJai (25b1030).
 
