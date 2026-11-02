@@ -1,113 +1,128 @@
 # The Perks of Being a First Mover
 
-**Does White's advantage in chess grow or shrink with rating?**
+**Does White's advantage in chess grow or shrink with rating, and with the opening?**
 CS215 Open Project, Group 02. Mentor: Namish Bansal.
 
 Sanidhya (25b0944), Daksh Maahor (25b0974), Sahil (25b0991), VadaPavJai (25b1030)
 
 ## The idea
 
-Comparing raw win rates across rating brackets is misleading, because the two players are
-rarely rated exactly the same. A 1540 who beats a 1570 with White is stronger evidence of a
-first-move edge than a win between two 1570s. So for every game we use the Elo expected score
-with an extra bonus `h` for White:
+Comparing raw win rates is misleading, because the two players are rarely rated exactly the
+same. A 1540 who beats a 1570 with White is stronger evidence of a first-move edge than a win
+between two 1570s. So for every game we use the Elo expected score with an extra bonus `h` for
+White:
 
     E = 1 / (1 + 10^(-(whiteRating + h - blackRating) / 400))
 
-and find the `h` that best fits the results (win = 1, draw = 0.5, loss = 0). `h` is White's
-advantage in rating points. We fit it overall, for each speed (Bullet, Blitz, ...) and for each
-100-point rating bracket like [1500,1600).
+and find the `h` that best fits the results (win = 1, draw = 0.5, loss = 0) by maximum
+likelihood. `h` is White's advantage in rating points. We fit it overall, for each speed
+(Bullet, Blitz, ...), for each 100-point rating bracket like [1500,1600), and for each opening.
 
-## Results so far
+The three questions:
+1. **Rating.** Does White's advantage peak at intermediate ratings and shrink at 2200+?
+2. **Openings.** Do aggressive openings carry a bigger White advantage than drawish ones?
+   - Aggressive (all 1.e4 gambits): King's Gambit, Evans Gambit, Danish Gambit, Smith-Morra Gambit
+   - Drawish: Petrov's Defense, Berlin Defense, Queen's Gambit Declined, French Exchange
+3. **Time control.** Does White's advantage change from Bullet to Blitz, Rapid and Classical?
 
-Lichess standard rated games, January and February 2024: 190.6 million games read, 162.2 million
-kept after cleaning.
-
-| Speed | Games | White score | h (rating points, 95% CI) |
-|---|---:|---:|---:|
-| All | 162,175,412 | 0.517 | +11.9 ± 0.1 |
-| Blitz | 77,918,475 | 0.518 | +12.8 ± 0.1 |
-| Bullet | 59,945,392 | 0.514 | +9.9 ± 0.1 |
-| Rapid | 22,650,621 | 0.520 | +14.2 ± 0.1 |
-| Classical | 857,174 | 0.519 | +13.4 ± 0.7 |
-| UltraBullet | 722,976 | 0.513 | +9.1 ± 0.8 |
-| Correspondence | 80,774 | 0.504 | +2.8 ± 2.4 |
-
-The full table for every speed and bracket is in `output/summary.txt`, and the write-up is
-`reports/checkpoint1/checkpointOne.pdf`.
+Each opening, each speed and each rating bracket is treated as its own set of games and gets its
+own maximum-likelihood `h`. How `h` changes with rating is read from the bracket-by-bracket charts.
+Two sets of games are compared with a z-test for the difference (aggressive vs drawish openings,
+and each speed vs the next faster one).
+All of it is explained with worked examples in `reports/final/Theory.pdf`.
 
 ## What's where
 
     README.md                        this file
     scripts/
-        white_advantage.cpp          the whole analysis: reads the games, fits h, writes the results
+        white_advantage.cpp          main(): reads the arguments and runs everything below
+        src/                         the program, split by job (the list is at the top of
+                                     white_advantage.cpp)
         white_advantage_colab.ipynb  runs it on Google Colab, streaming the data from Lichess
     output/
-        output.csv                   results table (one row per speed and bracket)
-        summary.txt                  everything the program printed
+        checkpoint1/                 the Checkpoint 1 results (output.csv, summary.txt)
+        final/
+            counts.csv               every game counted by opening, speed, bracket and rating gap
+            output.csv               results by speed and bracket
+            openings.csv             results by opening (and by opening and bracket)
+            summary.txt              everything the program printed
+            dashboard.html           interactive Plotly dashboard: compare openings or speeds
     reports/
         proposal.pdf
-        checkpoint1/
-            report.tex               Checkpoint 1 report
-            report_numbers.tex       numbers, tables and figure for it (written by the program)
-            checkpointOne.pdf        the submitted report
+        checkpoint1/                 Checkpoint 1 report (report.tex, report_numbers.tex, checkpointOne.pdf)
+        final/
+            report.tex               final report text
+            report_numbers.tex       its numbers, tables and figures (written by the program)
+            finalReport.pdf          the final report
+            Theory.tex, Theory.pdf   the statistics explained, with worked examples
     raw_data/                        put downloaded .pgn.zst files here (never committed)
-
-Note: the current `output/output.csv` was rebuilt from the printed table, so it has the
-printed precision (scores to 3 decimals). Rerun the program to get the exact values.
 
 ## Running it
 
-### On Google Colab (recommended)
+The monthly Lichess files are tens of GB each, so reading them is the only slow part, and it
+only has to happen once: the program saves `counts.csv` (a few MB), and everything else is
+rebuilt from that file in seconds with `--from-counts`.
 
-The monthly files are tens of GB each, so the easiest way is
-`scripts/white_advantage_colab.ipynb`: upload it to colab.research.google.com and run the cells.
-It streams each month from Lichess straight into the program, so nothing big is saved anywhere,
-and at the end you download `results.zip` with the results and the report.
+### 1. The slow run, on Google Colab
 
-### On your own machine
+Open the notebook straight from GitHub:
+[Open in Colab](https://colab.research.google.com/github/Sahil-M-Deo/The-Perks-of-Being-a-First-Mover/blob/main/scripts/white_advantage_colab.ipynb)
+(or upload `scripts/white_advantage_colab.ipynb` to colab.research.google.com), and run steps 1 to 4.
+The notebook clones this repo, so push any code changes before running it.
+It streams each month from Lichess straight into the program, so nothing big is saved anywhere.
+Do a test run with `MAX_GAMES = 1000000` first, then the full run. Download `results.zip` and
+put everything in it into `output/final/`, then push.
 
-Needs g++ and the zstd library (`sudo apt install libzstd-dev`), plus LaTeX with pgfplots if you
-want the PDF built too. Download monthly files from https://database.lichess.org into `raw_data/`,
-then from the repo root:
+### 2. Rebuilding the results, dashboard and report from `counts.csv`
+
+Either run step 5 of the notebook, or on your own machine (needs g++, the zstd library
+`sudo apt install libzstd-dev`, and LaTeX with pgfplots for the PDF), from the repo root:
 
     g++ -O2 -std=c++17 -pthread scripts/white_advantage.cpp -o scripts/white_advantage -lzstd
-    cd output
-    ../scripts/white_advantage ../raw_data/lichess_db_standard_rated_*.pgn.zst --report ../reports/checkpoint1/report_numbers.tex | tee summary.txt
+    cd output/final
+    ../../scripts/white_advantage --from-counts counts.csv --report ../../reports/final/report_numbers.tex
 
-That one run writes:
-- `output/output.csv` and `output/summary.txt`: the results
-- `reports/checkpoint1/report_numbers.tex`: every number, table and the figure for the report
-- `reports/checkpoint1/checkpointOne.pdf`: the finished report (the program runs `pdflatex`)
+That writes `output/final/output.csv`, `openings.csv`, `dashboard.html`,
+`reports/final/report_numbers.tex` and builds `reports/final/finalReport.pdf`.
+After editing `report.tex` by hand, rebuild only the PDF from `reports/final/` with
+`pdflatex -jobname=finalReport report.tex` (twice, so figure numbers are right).
+`Theory.pdf` is built from `Theory.tex` the same way: `pdflatex Theory.tex`.
 
-Each file is read on its own thread, and the results are added together. Memory stays at a few MB.
-After editing `report.tex` by hand, rebuild only the PDF from `reports/checkpoint1/` with
-`pdflatex -jobname=checkpointOne report.tex`.
+### Reading the games on your own machine
+
+If you do have the files, put them in `raw_data/` and, from `output/final/`:
+
+    ../../scripts/white_advantage ../../raw_data/lichess_db_standard_rated_*.pgn.zst --report ../../reports/final/report_numbers.tex | tee summary.txt
+
+Each file is read on its own thread and the results are added together. Memory stays small
+(about 20 MB per file).
 
 ### Options
 
 | Option | Meaning |
 |---|---|
 | `--max-games N` | only read the first N games of each file (for a quick test run) |
-| `--report FILE` | write the numbers, tables and figure for `report.tex`, then build `checkpointOne.pdf` |
+| `--from-counts FILE` | skip the games and load a saved `counts.csv` instead |
+| `--report FILE` | write the numbers, tables and figures for `report.tex`, then build `finalReport.pdf` |
 
-The results table is always saved as `output.csv` in the folder you run the program from. The
-analysis settings are fixed at the top of `white_advantage.cpp`: 100-point rating brackets (by the
+The analysis settings are fixed in `scripts/src/settings.h`: 100-point rating brackets (by the
 average of both players' ratings), games with a rating gap over 100 skipped, and brackets with
-fewer than 1,000 games hidden.
+fewer than 1,000 games left out. The openings are the `openings` list in `scripts/src/openings.h`:
+each one is matched by the start of the Lichess opening name, minus some gambit side-lines.
+Four spare openings (Scotch, Vienna, Four Knights, Slav) are counted too, so they can be swapped
+into the report later without reading the games again.
 
 ### Output columns
 
-- **Score**: White's actual average score
-- **Expected**: average score the ratings alone predict
-- **Residual**: Score − Expected, White's edge in score
-- **h (pts)**: White's edge in rating points
-- **95% CI**: h is within ± this value with 95% confidence
+- **White / Draw / Black**: share of games won by White, drawn, won by Black
+- **Exp.**: White's average score predicted by the ratings alone
+- **h (pts)**: White's edge in rating points, with its 95% confidence interval
 
 Abandoned games and games without a result or rating are skipped. The counts are printed above
-the table.
+the tables.
 
 ## Data
 
 [Lichess Open Database](https://database.lichess.org), standard rated games, released under the
-Creative Commons CC0 licence.
+Creative Commons CC0 licence. Opening names from
+[lichess-org/chess-openings](https://github.com/lichess-org/chess-openings).

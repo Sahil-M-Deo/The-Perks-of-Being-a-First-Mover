@@ -1,0 +1,350 @@
+% Final report. The numbers, tables and figures come from report_numbers.tex, which
+% white_advantage writes when run with --report (see README.md in the repo root).
+% Build from this folder:  pdflatex -jobname=finalReport report.tex  (twice)
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2cm,top=1.8cm,bottom=2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}
+\usepackage{courier}
+\usepackage[scaled=0.9]{helvet}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{placeins}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+
+\titleformat{\section}{\large\sffamily\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\sffamily\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{12pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+\setlist{itemsep=2pt,topsep=3pt,leftmargin=1.3em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\captionsetup{font=small,labelfont=bf}
+
+% red placeholder for anything not filled in yet
+\newcommand{\TBD}[1]{\textcolor{red}{\textbf{[#1]}}}
+
+\input{report_numbers.tex}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries The Perks of Being a First Mover}\\[4pt]
+{\large Does White's Advantage in Chess Change with Rating, Opening and Time Control?}\\[6pt]
+CS215 Open Project \quad$\cdot$\quad Final Report \quad$\cdot$\quad Group 02\\[2pt]
+{\small Sanidhya (25b0944), Daksh Maahor (25b0974), Sahil (25b0991), VadaPavJai (25b1030)}\\[2pt]
+{\small Mentor: Namish Bansal}\\[2pt]
+{\small\url{https://github.com/Sahil-M-Deo/The-Perks-of-Being-a-First-Mover}}
+\end{center}
+
+\section*{Summary}
+We measure the first-move advantage on Lichess using \GamesUsed{} standard rated games from
+\MonthList. Instead of comparing raw win rates, we fit White's advantage as a number of
+\emph{rating points}, $h$, after correcting every game for the rating gap between the players.
+Overall White is worth $h = \HAll \pm \HAllCI$ rating points. We then ask three questions:
+how $h$ changes with playing strength, with the time control (Bullet to Classical), and with
+the opening, where we compare four openings with an aggressive reputation (all 1.e4 gambits)
+against four with a drawish reputation.
+\TBD{one or two sentences with the main findings, written once the real results are in}
+
+\section{Question and hypotheses}
+Chess is a game of perfect information in which White moves first. Database statistics have
+long shown that White scores a little better than Black, but a raw win rate mixes three things:
+the first move itself, the rating gap between the players, and how often games are drawn.
+We separate them and test:
+\begin{enumerate}[label=\textbf{H\arabic*}]
+\item \textbf{Rating (from our proposal).} White's advantage is not constant across skill levels.
+  It peaks at intermediate ratings, where players can exploit the initiative but defend poorly,
+  and shrinks at 2200+, where Black knows how to neutralise it.
+\item \textbf{Openings (new for the final stage).} Aggressive openings, where White gives up
+  material for the initiative, carry a larger White advantage than drawish openings, and drawish
+  openings have far more draws at every rating.
+\item \textbf{Time control.} White's advantage depends on how much time the players have. In
+  slower games the first-move initiative is used more accurately and fewer games are decided by
+  the clock, so we expect $h$ to grow from Bullet to Classical.
+\end{enumerate}
+
+\FloatBarrier
+\section{Data}
+\textbf{Source.} The Lichess Open Database (\url{https://database.lichess.org}), standard rated
+games for \MonthList, released under the Creative Commons CC0 licence. Each month is one
+zstd-compressed PGN file of tens of GB. Every game has about 17 header tags. We use seven:
+\texttt{Result}, \texttt{WhiteElo}, \texttt{BlackElo}, \texttt{Event} (gives the speed),
+\texttt{TimeControl}, \texttt{Termination} and \texttt{Opening}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Month & Games read & Games kept & Kept \\
+\midrule
+\FileRows
+\midrule
+Total & \GamesRead & \GamesUsed & \PctUsed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Cleaning.} We drop games with no result (\SkipNoResult), abandoned games
+(\SkipAbandoned), games with a missing rating (\SkipNoRating), and games where the two
+ratings differ by more than 100 points (\SkipGap). The rating gap is corrected for inside the
+model anyway, but very lopsided games say little about the first move. Each game is put in a
+100-point rating bracket $[a, a{+}100)$ by the \emph{average} of the two ratings, and in a speed
+(UltraBullet to Correspondence) from the \texttt{Event} tag.
+
+\textbf{Openings.} Lichess names the opening of every game, for example
+\emph{King's Gambit Accepted: Bishop's Gambit}. We match those names as shown in
+Table~\ref{tab:defs}. Inside the drawish openings we leave out their gambit side-lines, such as
+the Stafford Gambit in the Petrov, so that the drawish group really is quiet. The eight openings
+cover \OpeningGames{} games (\OpeningShare{} of all kept games). Everything else is ``other''.
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Openings and the Lichess opening names they cover. A game counts if its name starts
+with one of the listed names and contains none of the excluded ones.}
+\label{tab:defs}
+\begin{tabularx}{\linewidth}{@{}llXp{4.4cm}@{}}
+\toprule
+Opening & Group & Lichess name starts with & Excluding \\
+\midrule
+\OpeningDefRows
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Why these eight.} The aggressive openings are White gambits: White gives up a pawn
+or more for fast development and attack (King's, Evans, Danish and Smith-Morra Gambits). The
+drawish openings have a reputation for symmetrical, simplified positions: the Petrov and the
+Berlin (Black's choice), the Queen's Gambit Declined (Black's choice), and the French Exchange
+(White's choice to simplify).
+
+\FloatBarrier
+\section{Method}
+The full derivations, with worked examples, are in the separate document \emph{Theory.pdf}.
+
+\FloatBarrier
+\subsection{White's advantage in rating points}
+Under the Elo model, a player rated $d$ points above the opponent is expected to score
+$E(d) = 1/(1 + 10^{-d/400})$. We give White an extra $h$ points:
+\[
+E_i(h) = \frac{1}{1 + 10^{-(R^{\mathrm W}_i + h - R^{\mathrm B}_i)/400}},
+\]
+and choose the $h$ that makes the expected scores add up to the actual scores
+($S_i = 1, \tfrac12, 0$ for a White win, draw or loss). This is the maximum-likelihood
+estimate. We find it with Newton's method, and its standard error comes from the curvature of
+the log-likelihood (the Fisher information). Reporting $h$ in rating points makes groups
+comparable: a 1540 who beats a 1570 with White counts as stronger evidence than a win between two
+1570s. Draws count as half a point. Draw and win rates are reported separately.
+
+\FloatBarrier
+\subsection{$h$ by rating (H1)}
+We fit $h$ separately in every 100-point rating bracket (by the average of the two ratings), for
+each speed, and read the shape from the chart of $h$ against rating. We don't fit a single line
+through the brackets, because the shape is not close to a straight line, and a slope would hide
+it.
+
+\FloatBarrier
+\subsection{Aggressive vs drawish (H2)}
+Each opening is treated as its own set of games: we fit $h$ by maximum likelihood using only
+the games played in that opening, which gives one $h$ (with its CI) per opening. For the
+comparison we also fit one $h$ for all four aggressive openings together and one for the four
+drawish ones,
+and test the difference with a $z$-test: the two groups are different games, so the variances
+add, $\mathrm{SE}(\hat h_A - \hat h_D) = \sqrt{\mathrm{SE}_A^2 + \mathrm{SE}_D^2}$. We do this for
+all speeds together and for each of Bullet, Blitz and Rapid.
+
+\FloatBarrier
+\subsection{Time controls (H3)}
+Lichess sorts every game into a speed (UltraBullet, Bullet, Blitz, Rapid, Classical,
+Correspondence) by its time control. We treat each speed exactly like an opening: its games are
+a separate set, with their own maximum-likelihood $h$ and win/draw/loss shares. We then compare
+each speed with the next faster one using the same $z$-test for a difference.
+
+\FloatBarrier
+\subsection{Big data and significance}
+With \GamesUsed{} games, almost any difference has a tiny $p$-value. So we always report the
+size of an effect with its 95\% confidence interval, and treat effects of a few rating points
+as small whatever their $p$-value.
+
+\FloatBarrier
+\subsection{Tools}
+A C++ program streams the compressed files (zstd), reads only the header lines, and counts
+games by opening, speed, rating bracket and rating gap. The two months are read on two threads.
+We ran it on Google Colab, streaming the files straight from Lichess so nothing large was
+downloaded. It saves those counts (\texttt{counts.csv}, a few MB), and every table, test, figure,
+this report and an interactive Plotly dashboard (\texttt{output/final/dashboard.html}) are rebuilt
+from them in seconds.
+
+\FloatBarrier
+\section{Results}
+
+\FloatBarrier
+\subsection{Overall}
+Over all kept games White wins \WhiteAll, draws \DrawAll{} and loses \BlackAll. White's average
+score is \ScoreAll{} against \ExpectedAll{} predicted by the ratings alone, which is
+$h = \HAll \pm \HAllCI$ rating points.
+
+\begin{figure}[!htbp]
+\centering
+\FigResults
+\caption{Share of games won by White, drawn and won by Black, by rating (all speeds).}
+\end{figure}
+
+\FloatBarrier
+\subsection{Does the advantage peak at intermediate ratings? (H1)}
+\TBD{interpretation: is H1 supported?}
+
+\begin{figure}[!htbp]
+\centering
+\FigSpeed
+\caption{$h$ in each 100-point rating bracket, by speed, with 95\% CIs. Brackets with fewer than
+1,000 games are left out.}
+\end{figure}
+
+\FloatBarrier
+\subsection{Openings (H2)}
+\begin{table}[!htbp]
+\centering\small
+\caption{White's advantage by opening (all speeds). Avg rating = average rating of the games.}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Opening & Games & Avg rating & White & Draw & Black & $h$ (pts) \\
+\midrule
+\OpeningRows
+\midrule
+\GroupRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\FigOpenings
+\caption{$h$ for each opening (all speeds) with 95\% CIs.}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\FigGroupH
+\caption{$h$ by rating for the aggressive and the drawish openings, with 95\% CIs.}\label{fig:grouph}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\FigGroupDraws
+\caption{Draw rate by rating for the aggressive and the drawish openings.}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Aggressive vs drawish openings: $h$ for each group, and the difference with its
+$z$-test (rating points, 95\% CI), for all speeds and for each of the main speeds.}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Speed & Aggressive & Drawish & Difference & $z$ & $p$ \\
+\midrule
+\CompareRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+Over all speeds, $h$ for the aggressive openings minus $h$ for the drawish openings is
+\CompareDiff{} rating points ($z = \CompareZ$, $p = $ \CompareP).
+\TBD{interpretation: is H2 supported, and what does it say about White's advantage?}
+
+
+\FloatBarrier
+\subsection{Time controls (H3)}
+\begin{table}[!htbp]
+\centering\small
+\caption{White's advantage by speed (all openings). White / Draw / Black = share of games won
+by White, drawn, won by Black. $h$ with 95\% CI.}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Speed & Games & Avg rating & White & Draw & Black & $h$ (pts) \\
+\midrule
+\SpeedRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\FigSpeedBars
+\caption{$h$ for each speed (all openings) with 95\% CIs.}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering\small
+\caption{Each speed against the next faster one: $h$ for both, and the difference (slower minus
+faster) with its $z$-test (rating points, 95\% CI).}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Speeds & Slower & Faster & Difference & $z$ & $p$ \\
+\midrule
+\SpeedStepRows
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\FigSpeedDraws
+\caption{Draw rate by rating for each speed.}
+\end{figure}
+
+\TBD{interpretation: is H3 supported?}
+
+\FloatBarrier
+\section{Discussion}
+\TBD{what the results mean for White's advantage, written once the real results are in}
+
+\textbf{Limitations.}
+\begin{itemize}
+\item \emph{Choosing an opening is not random.} Players who play the King's Gambit or the
+  Berlin differ in style and preparation, and the opening is chosen by one player (White for
+  the gambits and the French Exchange, Black for the Petrov, Berlin and QGD). Our $h$
+  corrects for the rating gap in each game, but the results show association, not that the
+  opening causes the difference.
+\item \emph{The groups have different players.} The comparison of the two opening groups doesn't
+  adjust for their players' ratings. The ``Avg rating'' column and Figure~\ref{fig:grouph}
+  (which compares the groups bracket by bracket) show how much that matters.
+\item \emph{Ratings are noisy}, especially for new accounts, which blurs the correction for the
+  rating gap. Lichess ratings also differ from FIDE ratings, so ``2200 on Lichess'' is not a
+  master.
+\item \emph{Games are not independent.} Active players contribute thousands of games, so the
+  real uncertainty is somewhat larger than our confidence intervals.
+\item \emph{One site, two months.} The results describe Lichess players in early 2024.
+\end{itemize}
+
+\FloatBarrier
+\section{Conclusion}
+\TBD{answer to the three questions in a few sentences}
+
+\section*{Contributions}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+Sanidhya & Statistical modelling: fitting $h$, confidence intervals and the $z$-tests. \\
+Daksh Maahor & Data cleaning and opening classification; win/draw/loss rates. \\
+Sahil & Data engineering: the C++ streaming parser and the Colab pipeline. \\
+VadaPavJai & Visualisation: figures, the Plotly dashboard and the report. \\
+\end{tabularx}
+
+\section*{References}
+{\small
+Lichess Open Database, \url{https://database.lichess.org}.
+Lichess opening names, \url{https://github.com/lichess-org/chess-openings}.
+A.\,E.~Elo, \emph{The Rating of Chessplayers, Past and Present}, Arco, 1978.
+M.\,E.~Glickman, ``Example of the Glicko-2 system'', 2012.
+}
+
+\end{document}
