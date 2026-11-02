@@ -38,15 +38,15 @@ Comparison compareGroups(Stats &st, int speed) {
 }
 
 bool enoughGames(Stats &st, int speed) {
-    return fit(st, -1, -1, speed, -1).games >= MIN_GAMES;
+    return fit(st, -1, -1, speed, -1).games>=MIN_GAMES;
 }
 
 // a speed gets a line in the by-rating charts if at least 3 brackets have enough games
 bool enoughBrackets(Stats &st, int speed) {
     int count = 0;
-    for (int b = 0; b < numBands(); b++)
-        if (fit(st, -1, -1, speed, b).games >= MIN_GAMES) count++;
-    return count >= 3;
+    for (int b=0; b<numBands(); b++)
+        if (fit(st, -1, -1, speed, b).games>=MIN_GAMES) count++;
+    return count>=3;
 }
 
 struct Analysis {
@@ -57,15 +57,15 @@ struct Analysis {
 
 Analysis analyse(Stats &st) {
     Analysis a;
-    for (int s = 0; s < NUM_SPEEDS; s++) a.hasLine[s] = enoughBrackets(st, s);
+    for (int s=0; s<NUM_SPEEDS; s++) a.hasLine[s] = enoughBrackets(st, s);
     a.groups = compareGroups(st, -1);
-    for (int s = BULLET; s <= RAPID; s++) a.groupsSpeed[s] = compareGroups(st, s);
+    for (int s=BULLET; s<=RAPID; s++) a.groupsSpeed[s] = compareGroups(st, s);
 
     // the Speed enum is already in order from fastest to slowest
     int previous = -1;
-    for (int s = ULTRABULLET; s <= CORRESPONDENCE; s++) {
+    for (int s=ULTRABULLET; s<=CORRESPONDENCE; s++) {
         if (!enoughGames(st, s)) continue;
-        if (previous != -1) {
+        if (previous!=-1) {
             Result slower = fit(st, -1, -1, s, -1);
             Result faster = fit(st, -1, -1, previous, -1);
             a.speedSteps.push_back(compare(speedNames[s], slower, speedNames[previous], faster));
@@ -77,14 +77,14 @@ Analysis analyse(Stats &st) {
 
 void printComparison(string what, Comparison c) {
     printf("  %-30s %s %+6.1f   %s %+6.1f   difference %+6.1f +- %4.1f   (z = %+.1f, p = %.2g)\n",
-           what.c_str(), c.first.c_str(), c.a.h, c.second.c_str(), c.b.h, c.diff, 1.96 * c.error,
-           c.diff / c.error, pValue(c.diff / c.error));
+            what.c_str(), c.first.c_str(), c.a.h, c.second.c_str(), c.b.h, c.diff, 1.96 * c.error,
+            c.diff / c.error, pValue(c.diff / c.error));
 }
 
 void printAnalysis(Analysis &a) {
     cout << "\nAggressive vs drawish openings, h in rating points (95% CI)\n";
     printComparison("All speeds", a.groups);
-    for (int s = BULLET; s <= RAPID; s++) printComparison(speedNames[s], a.groupsSpeed[s]);
+    for (int s=BULLET; s<=RAPID; s++) printComparison(speedNames[s], a.groupsSpeed[s]);
 
     cout << "\nEach speed against the next faster one, h in rating points (95% CI)\n";
     for (Comparison c : a.speedSteps) printComparison(c.first + " vs " + c.second, c);

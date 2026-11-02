@@ -20,21 +20,21 @@ Result fitWhiteAdvantage(Cells &c) {
     Result r;
     double totalScore = 0, totalExpected = 0, totalDraws = 0;
 
-    for (int i = 0; i < numDiffs(); i++) {
+    for (int i=0; i<numDiffs(); i++) {
         int diff = i - MAX_DIFF;
         r.games += c.games[i];
         totalScore += c.halfPoints[i] / 2.0;
         totalDraws += c.draws[i];
         totalExpected += c.games[i] / (1 + exp(-K * diff));
     }
-    if (r.games == 0) return r;
+    if (r.games==0) return r;
 
     double h = 0, information = 0;
-    for (int iter = 0; iter < 50; iter++) {
+    for (int iter=0; iter<50; iter++) {
         double gradient = 0;
         information = 0;
-        for (int i = 0; i < numDiffs(); i++) {
-            if (c.games[i] == 0) continue;
+        for (int i=0; i<numDiffs(); i++) {
+            if (c.games[i]==0) continue;
             int diff = i - MAX_DIFF;
             double e = 1 / (1 + exp(-K * (diff + h)));
             gradient += K * (c.halfPoints[i] / 2.0 - c.games[i] * e);
@@ -42,7 +42,7 @@ Result fitWhiteAdvantage(Cells &c) {
         }
         double step = gradient / information;
         h += step;
-        if (fabs(step) < 1e-6) break;
+        if (fabs(step)<1e-6) break;
     }
 
     r.h = h;

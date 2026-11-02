@@ -1,6 +1,5 @@
 # raw Lichess files are tens of GB, never commit them
-raw_data/*.pgn
-raw_data/*.pgn.zst
+*.pgn
 *.pgn.zst
 
 # compiled program

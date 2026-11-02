@@ -24,16 +24,16 @@ class FileReader {
 
     bool readPlainChunk(string &chunk) {
         int n = fread(outBuffer.data(), 1, outBuffer.size(), file);
-        if (n <= 0) return false;
+        if (n<=0) return false;
         chunk.assign(outBuffer.data(), n);
         return true;
     }
 
     bool readZstdChunk(string &chunk) {
         while (true) {
-            if (input.pos == input.size) {
+            if (input.pos==input.size) {
                 int n = fread(inBuffer.data(), 1, inBuffer.size(), file);
-                if (n <= 0) return drainZstd(chunk);
+                if (n<=0) return drainZstd(chunk);
                 input.src = inBuffer.data();
                 input.size = n;
                 input.pos = 0;
@@ -41,7 +41,7 @@ class FileReader {
             ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
             ZSTD_decompressStream(zstd, &output, &input);
             // it sometimes needs more input before it can write anything
-            if (output.pos > 0) {
+            if (output.pos>0) {
                 chunk.assign(outBuffer.data(), output.pos);
                 return true;
             }
@@ -53,7 +53,7 @@ class FileReader {
         ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
         ZSTD_inBuffer empty = {nullptr, 0, 0};
         ZSTD_decompressStream(zstd, &output, &empty);
-        if (output.pos == 0) return false;
+        if (output.pos==0) return false;
         chunk.assign(outBuffer.data(), output.pos);
         return true;
     }
@@ -61,7 +61,7 @@ class FileReader {
 public:
     FileReader(string path) {
         file = fopen(path.c_str(), "rb");
-        compressed = path.size() > 4 && path.substr(path.size() - 4) == ".zst";
+        compressed = path.size()>4 && path.substr(path.size() - 4)==".zst";
         outBuffer.resize(1 << 20);
         if (compressed) {
             zstd = ZSTD_createDCtx();
@@ -80,13 +80,13 @@ public:
     bool readLine(string &line) {
         while (true) {
             int newline = buffer.find('\n', pos);
-            if (newline != string::npos) {
+            if (newline!=string::npos) {
                 line = buffer.substr(pos, newline - pos);
                 pos = newline + 1;
                 return true;
             }
             if (finished) {
-                if (pos == (int)buffer.size()) return false;
+                if (pos==(int)buffer.size()) return false;
                 line = buffer.substr(pos);
                 pos = buffer.size();
                 return true;

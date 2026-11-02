@@ -55,7 +55,6 @@ All of it is explained with worked examples in `reports/final/Theory.pdf`.
             report_numbers.tex       its numbers, tables and figures (written by the program)
             finalReport.pdf          the final report
             Theory.tex, Theory.pdf   the statistics explained, with worked examples
-    raw_data/                        put downloaded .pgn.zst files here (never committed)
 
 ## Running it
 
@@ -90,9 +89,10 @@ After editing `report.tex` by hand, rebuild only the PDF from `reports/final/` w
 
 ### Reading the games on your own machine
 
-If you do have the files, put them in `raw_data/` and, from `output/final/`:
+If you have the monthly files on your machine, keep them outside the repo (they're tens of GB)
+and pass their paths, from `output/final/`:
 
-    ../../scripts/white_advantage ../../raw_data/lichess_db_standard_rated_*.pgn.zst --report ../../reports/final/report_numbers.tex | tee summary.txt
+    ../../scripts/white_advantage /path/to/lichess_db_standard_rated_2024-0*.pgn.zst --report ../../reports/final/report_numbers.tex | tee summary.txt
 
 Each file is read on its own thread and the results are added together. Memory stays small
 (about 20 MB per file).

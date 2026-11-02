@@ -5,10 +5,10 @@
 string withCommas(int n) {
     string s = to_string(n), out = "";
     int digits = 0;
-    for (int i = (int)s.size() - 1; i >= 0; i--) {
+    for (int i=(int)s.size()-1; i>=0; i--) {
         out = s[i] + out;
         digits++;
-        if (digits % 3 == 0 && i > 0) out = "," + out;
+        if (digits%3==0 && i>0) out = "," + out;
     }
     return out;
 }
@@ -26,9 +26,9 @@ string num(double x, int decimals, bool plusSign = false) {
 // {"2024-01", "2024-02"} -> "2024-01 and 2024-02"
 string monthList(vector<string> &months) {
     string s = "";
-    for (int i = 0; i < (int)months.size(); i++) {
-        if (i > 0 && i == (int)months.size() - 1) s += " and ";
-        else if (i > 0) s += ", ";
+    for (int i=0; i<(int)months.size(); i++) {
+        if (i>0 && i==(int)months.size()-1) s += " and ";
+        else if (i>0) s += ", ";
         s += months[i];
     }
     return s;
@@ -47,8 +47,8 @@ string withCI(double value, double error, int decimals = 1) {
 
 // tiny p-values are shown as an upper bound, the rest in scientific notation
 string pText(double p) {
-    if (p < 1e-300) return "$< 10^{-300}$";
-    if (p >= 0.001) return "$" + num(p, 3) + "$";
+    if (p<1e-300) return "$< 10^{-300}$";
+    if (p>=0.001) return "$" + num(p, 3) + "$";
     int exponent = floor(log10(p));
     return "$" + num(p / pow(10, exponent), 1) + " \\times 10^{" + to_string(exponent) + "}$";
 }

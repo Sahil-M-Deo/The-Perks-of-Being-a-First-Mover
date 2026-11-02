@@ -20,21 +20,21 @@ struct Opening {
 
 vector<Opening> openings = {
     {"King's Gambit", AGGRESSIVE, {"King's Gambit"}, {}},
-    {"Evans Gambit", AGGRESSIVE, {"Italian Game: Evans Gambit"}, {}},
-    {"Danish Gambit", AGGRESSIVE, {"Danish Gambit"}, {}},
-    {"Smith-Morra Gambit", AGGRESSIVE, {"Sicilian Defense: Smith-Morra Gambit"}, {}},
+            {"Evans Gambit", AGGRESSIVE, {"Italian Game: Evans Gambit"}, {}},
+            {"Danish Gambit", AGGRESSIVE, {"Danish Gambit"}, {}},
+            {"Smith-Morra Gambit", AGGRESSIVE, {"Sicilian Defense: Smith-Morra Gambit"}, {}},
     // Lichess used to call the Petrov "Russian Game" (it still does in the 2024 files)
-    {"Petrov's Defense", DRAWISH, {"Petrov's Defense", "Russian Game"},
-        {"Stafford Gambit", "Cochrane Gambit"}},
-    {"Berlin Defense", DRAWISH, {"Ruy Lopez: Berlin Defense"}, {}},
-    {"Queen's Gambit Declined", DRAWISH, {"Queen's Gambit Declined"},
-        {"Albin Countergambit", "Chigorin Defense", "Baltic Defense"}},
-    {"French Exchange", DRAWISH, {"French Defense: Exchange Variation"}, {}},
-    {"Scotch Game", EXTRA, {"Scotch Game"}, {}},
-    {"Vienna Game", EXTRA, {"Vienna Game"}, {}},
-    {"Four Knights Game", EXTRA, {"Four Knights Game"}, {"Halloween Gambit"}},
-    {"Slav Defense", EXTRA, {"Slav Defense"}, {}},
-};
+            {"Petrov's Defense", DRAWISH, {"Petrov's Defense", "Russian Game"},
+            {"Stafford Gambit", "Cochrane Gambit"}},
+            {"Berlin Defense", DRAWISH, {"Ruy Lopez: Berlin Defense"}, {}},
+            {"Queen's Gambit Declined", DRAWISH, {"Queen's Gambit Declined"},
+            {"Albin Countergambit", "Chigorin Defense", "Baltic Defense"}},
+            {"French Exchange", DRAWISH, {"French Defense: Exchange Variation"}, {}},
+            {"Scotch Game", EXTRA, {"Scotch Game"}, {}},
+            {"Vienna Game", EXTRA, {"Vienna Game"}, {}},
+            {"Four Knights Game", EXTRA, {"Four Knights Game"}, {"Halloween Gambit"}},
+            {"Slav Defense", EXTRA, {"Slav Defense"}, {}},
+            };
 
 // one more slot after the list for "every other opening"
 int numOpenings() {
@@ -46,26 +46,26 @@ int otherOpening() {
 }
 
 Group groupOf(int o) {
-    if (o == otherOpening()) return NO_GROUP;
+    if (o==otherOpening()) return NO_GROUP;
     return openings[o].group;
 }
 
 string openingName(int o) {
-    if (o == otherOpening()) return "Other openings";
+    if (o==otherOpening()) return "Other openings";
     return openings[o].name;
 }
 
 bool startsWith(string &s, string &prefix) {
-    return s.compare(0, prefix.size(), prefix) == 0;
+    return s.compare(0, prefix.size(), prefix)==0;
 }
 
 int openingOf(string &name) {
-    for (int o = 0; o < (int)openings.size(); o++) {
+    for (int o=0; o<(int)openings.size(); o++) {
         for (string p : openings[o].prefixes) {
             if (!startsWith(name, p)) continue;
             bool excluded = false;
             for (string e : openings[o].excludes)
-                if (name.find(e) != string::npos) excluded = true;
+                if (name.find(e)!=string::npos) excluded = true;
             if (!excluded) return o;
         }
     }

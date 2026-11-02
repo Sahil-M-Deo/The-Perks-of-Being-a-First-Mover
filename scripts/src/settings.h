@@ -14,14 +14,14 @@ string COUNTS_IN = "";
 // UltraBullet has to come before Bullet, or "UltraBullet" games would match "Bullet" first
 enum Speed { ULTRABULLET, BULLET, BLITZ, RAPID, CLASSICAL, CORRESPONDENCE, OTHER, NUM_SPEEDS };
 string speedNames[NUM_SPEEDS] = {"UltraBullet", "Bullet", "Blitz", "Rapid",
-                                 "Classical", "Correspondence", "Other"};
+        "Classical", "Correspondence", "Other"};
 
 enum GameResult { WHITE_WINS, DRAW, BLACK_WINS, NO_RESULT };
 
 // white's score doubled, so a draw is 1 instead of 0.5 and everything stays an int
 int halfPointsFor(GameResult r) {
-    if (r == WHITE_WINS) return 2;
-    if (r == DRAW) return 1;
+    if (r==WHITE_WINS) return 2;
+    if (r==DRAW) return 1;
     return 0;
 }
 
