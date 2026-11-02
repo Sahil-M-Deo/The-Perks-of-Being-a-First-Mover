@@ -1,0 +1,8 @@
+schema: "classroom50/repo-config/v1"
+classroom: "dai-aug-2026"
+assignment: "openproject"
+secret: "dai2026"
+owner:
+  username: "Sahil-Deo-IITB"
+  id: 345781815
+  accepted_at: "2026-11-02T19:18:33Z"
