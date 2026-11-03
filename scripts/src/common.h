@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bits/stdc++.h>
+#include <unistd.h>   // fsync, so saved files really reach the disk
 
 // zstd is the compression library Lichess uses for its .pgn.zst files
 #include <zstd.h>
