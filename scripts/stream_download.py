@@ -28,6 +28,12 @@ CONNECT_TIMEOUT = 30            # seconds to connect
 READ_TIMEOUT = int(os.environ.get("STREAM_READ_TIMEOUT", 90))   # seconds with no data = stalled
 MAX_FAILS_IN_A_ROW = 30         # give up after this many reconnects with no progress at all
 ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
+# Lichess's files can start with a zstd "skippable frame" (written by pzstd): 0x184D2A5? little endian
+def looks_like_zstd(data):
+    return data.startswith(ZSTD_MAGIC) or (len(data) >= 4 and 0x50 <= data[0] <= 0x5F
+                                           and data[1:4] == b"\x2a\x4d\x18")
+# ask for the raw bytes: no server or library may unzip anything on the way
+HEADERS = {"Accept-Encoding": "identity"}
 
 
 def log(msg):
@@ -70,7 +76,9 @@ def main():
         sys.exit(code)
 
     while True:
-        headers = {"Range": f"bytes={offset}-"} if offset > 0 else {}
+        headers = dict(HEADERS)
+        if offset > 0:
+            headers["Range"] = f"bytes={offset}-"
         progressed = False
         try:
             with requests.get(url, headers=headers, stream=True,
@@ -94,8 +102,11 @@ def main():
                 for chunk in r.iter_content(CHUNK):
                     if not chunk:
                         continue
-                    if offset == 0 and not chunk.startswith(ZSTD_MAGIC):
-                        finish("failed", "the download is not a .zst file (an error page?)")
+                    if offset == 0 and not looks_like_zstd(chunk):
+                        finish("failed", "the download is not a .zst file (an error page?): starts with "
+                                         f"{chunk[:16].hex(' ')}, Content-Type "
+                                         f"{r.headers.get('Content-Type')}, Content-Encoding "
+                                         f"{r.headers.get('Content-Encoding')}")
                     try:
                         out.write(chunk)
                     except BrokenPipeError:
