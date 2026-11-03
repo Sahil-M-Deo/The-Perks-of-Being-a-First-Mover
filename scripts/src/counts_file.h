@@ -130,7 +130,13 @@ string readCounts(string path, Stats &total, vector<string> &months, vector<Stat
             total.noRating += stoll(p[3]);
             total.bigGap += stoll(p[4]);
         }
-        else if (p[0]=="#family") total.families[p[1]] += stoll(p[2]);
+        else if (p[0]=="#family" && p.size()>=3) {
+            // some Lichess names have commas ("London System, with Bd3"): the count is the
+            // last field and the name is everything between the first and the last comma
+            string name = p[1];
+            for (int i=2; i+1<(int)p.size(); i++) name += "," + p[i];
+            total.families[name] += stoll(p.back());
+        }
         else if (p[0]=="opening") hasHeader = true;
         else if (p[0][0]=='#') continue;   // a line from a newer version; skip it
         else if (p.size()>=7) readCountsLine(p, total);
