@@ -1,4 +1,4 @@
-# Group 02: The Perks of Being a First Mover
+# Group 02 : The Perks of Being a First Mover
 
 **Does White's advantage in chess grow or shrink with rating, and with the opening?**
 CS215 Open Project, Group 02 Mentor: Namish Bansal.
