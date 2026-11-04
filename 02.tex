@@ -62,7 +62,7 @@ CS215 Open Project \quad$\cdot$\quad Final Report \quad$\cdot$\quad Group 02\\[2
 \textbf{4. Group Members and Roll Numbers} &
   Sanidhya (25b0944); Daksh Maahor (25b0974); Sahil (25b0991); VadaPavJai (25b1030) \\
 \textbf{5. Honor Code and Discussions} &
-  None \\
+  We did not consult or work with anyone outside our group. All consultations were from LLMs as noted below. \\
 \textbf{6. LLM Usage Links} &
 \begin{minipage}[t]{\linewidth}\footnotesize
 \begin{itemize}[leftmargin=1em,itemsep=0pt,topsep=0pt]
@@ -70,7 +70,7 @@ CS215 Open Project \quad$\cdot$\quad Final Report \quad$\cdot$\quad Group 02\\[2
 \item \url{https://claude.ai/share/1bb9222d-6e23-4b2d-8803-6cdff0f0e31c}
 \end{itemize}
 \end{minipage} \\
-\textbf{7. Video Presentation} & \TBD{link to video} \\
+\textbf{7. Video Presentation} & \url{https://drive.google.com/file/d/1d1iBmvHLGC9XuQnEBNOylZaHz9B8BAjR/view} \\
 \textbf{8. GitHub Repository} & \url{https://github.com/cs215-cse-iitb/dai-aug-2026-openproject-group-2} \\
 \textbf{9. GitHub Handles and Initial Commit} & \\
 \hspace{1em}Sanidhya & \url{https://github.com/SS3642} \quad earliest commit: October 21, 2026 \\
@@ -90,7 +90,7 @@ Sanidhya & Statistical modelling: fitting $h$, confidence intervals and the $z$-
 Daksh Maahor & Data cleaning and opening classification; win/draw/loss rates. \\
 Sahil & Data engineering: the C++ streaming parser and the Colab pipeline. \\
 VadaPavJai & Visualisation: figures, the Plotly dashboard and the report. \\
-Claude & Literature review and initial analysis. \\
+Claude & Progress Spreadsheet Creation and added safety checks to the colab pipeline code. \\
 \end{tabularx}
 
 \newpage
@@ -100,7 +100,7 @@ Claude & Literature review and initial analysis. \\
 %=====================================================================
 
 \section*{Section 2: Technical Content}
-
+\hrule
 \subsection*{Core Problem Statement}
 We measure the first-move advantage on Lichess. Instead of raw win rates, we fit White's
 advantage as a number of \emph{rating points}, $h$, after correcting each game for the rating
@@ -317,7 +317,7 @@ Over \GamesUsed{} Lichess games from \MonthList{}, we measured White's first-mov
 \newpage
 
 \section*{Section 3: Frequently Answered Questions (FAQ)}
-
+\hrule
 \textbf{Q1. How many games did you analyse and where did they come from?}\\
 \GamesUsed{} standard rated Lichess games from \MonthList{} (\GamesRead{} read, \PctUsed{} kept),
 from the CC0 Lichess Open Database.
@@ -366,7 +366,7 @@ same effect appears outside Lichess.
 \newpage
 
 \section*{Section 4: Reflection Essay}
-
+\hrule
 This project taught us to turn a vague question (“is White better?”) into something measurable: White’s advantage as h rating points, fitted by maximum likelihood with confidence intervals, on millions of real games. We learned to stream huge compressed files with a C++ parser, keep the slow counting step separate from the fast analysis, and rebuild every table and figure from one small file.
 
 Unlike textbook problems, the data were messy and nothing told us what the answer should be. We had to decide what to exclude and defend it. With so many games almost every difference was “significant”, so the real question became whether an effect was large enough to matter. We also learned that opening choice is not random, so our results show association, not causation.
