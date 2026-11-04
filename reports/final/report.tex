@@ -47,6 +47,231 @@ CS215 Open Project \quad$\cdot$\quad Final Report \quad$\cdot$\quad Group 02\\[2
 {\small\url{https://github.com/cs215-cse-iitb/dai-aug-2026-openproject-group-2}}
 \end{center}
 
+%=====================================================================
+% SECTION 1: META INFORMATION
+%=====================================================================
+
+\section*{Section 1: Meta Information}
+
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{@{}p{4.6cm}X@{}}
+\toprule
+\textbf{1. Open Project Title} & The Perks of Being a First Mover: Does White's Advantage in Chess Change with Rating, Opening and Time Control? \\
+\textbf{2. Group ID} & ``02'' \\
+\textbf{3. Mentor Name} & Namish Bansal \\
+\textbf{4. Group Members and Roll Numbers} &
+  Sanidhya (25b0944); Daksh Maahor (25b0974); Sahil (25b0991); VadaPavJai (25b1030) \\
+\textbf{5. Honor Code and Discussions} &
+  None \\
+\textbf{6. LLM Usage Links} &
+  \TBD{Readable links to all chat sessions / prompts used. If an AI agent was used, export its report as PDF, host it and link it here.} \\
+\textbf{7. Video Presentation} & \TBD{link to video} \\
+\textbf{8. GitHub Repository} & \url{https://github.com/cs215-cse-iitb/dai-aug-2026-openproject-group-2} \\
+\textbf{9. GitHub Handles and Initial Commit} & \\
+\hspace{1em}Sanidhya & https://github.com/SS3642 \quad earliest commit: October 21, 2026 \\
+\hspace{1em}Daksh Maahor & https://github.com/Daksh-Maahor \quad earliest commit: November 3, 2026 \\
+\hspace{1em}Sahil & https://github.com/Sahil-Deo-IITB \quad earliest commit: November 3, 2026 \\
+\hspace{1em}VadaPavJai & https://github.com/nauseated-potato \quad earliest commit: October 18, 2026 \\
+\textbf{10. Contribution Breakdown} &
+  Unequal \\
+\bottomrule
+\end{tabularx}
+
+\vspace{8pt}
+\textbf{Work split (for reference).}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+Sanidhya & Statistical modelling: fitting $h$, confidence intervals and the $z$-tests. \\
+Daksh Maahor & Data cleaning and opening classification; win/draw/loss rates. \\
+Sahil & Data engineering: the C++ streaming parser and the Colab pipeline. \\
+VadaPavJai & Visualisation: figures, the Plotly dashboard and the report. \\
+\end{tabularx}
+
+\newpage
+
+%=====================================================================
+% SECTION 2: TECHNICAL CONTENT
+%=====================================================================
+
+\section*{Section 2: Technical Content}
+
+\subsection*{Core Problem Statement}
+We measure the first-move advantage on Lichess. Instead of raw win rates, we fit White's
+advantage as a number of \emph{rating points}, $h$, after correcting each game for the rating
+gap between the players. Under the Elo model a player $d$ points above the opponent scores
+$E(d)=1/(1+10^{-d/400})$; we give White an extra $h$ points,
+$E_i(h)=1/(1+10^{-(R^{\mathrm W}_i+h-R^{\mathrm B}_i)/400})$, and choose the $h$ that makes
+expected scores equal actual scores ($S_i=1,\tfrac12,0$). This is the maximum-likelihood
+estimate (Newton's method; standard error from the Fisher information). Overall,
+$h = \HAll \pm \HAllCI$ rating points. We test three hypotheses:
+\begin{itemize}
+\item \textbf{H1 (Rating).} $h$ peaks at intermediate ratings and shrinks at 2200+.
+\item \textbf{H2 (Openings).} Four aggressive 1.e4 gambits (King's, Evans, Danish, Smith-Morra)
+  carry a larger $h$ than four drawish openings (Petrov, Berlin, QGD, French Exchange), and the
+  drawish ones have more draws at every rating.
+\item \textbf{H3 (Time control).} $h$ grows from Bullet to Classical.
+\end{itemize}
+
+\subsection*{Data Source(s)}
+Lichess Open Database (\url{https://database.lichess.org}, CC0), standard rated games for
+\MonthList: one zstd-compressed PGN per month, tens of GB each, openly downloadable. We use
+seven of ~17 header tags: \texttt{Result}, \texttt{WhiteElo}, \texttt{BlackElo},
+\texttt{Event}, \texttt{TimeControl}, \texttt{Termination}, \texttt{Opening}. We read
+\GamesRead{} games and keep \GamesUsed{} (\PctUsed).
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}lrrr@{}}
+\toprule Month & Games read & Games kept & Kept \\ \midrule
+\FileRows \\ \midrule
+Total & \GamesRead & \GamesUsed & \PctUsed \\ \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Tools and Software Packages}
+A C++ program streams the zstd files, reads only header lines, and counts games by opening,
+speed, 100-point rating bracket and rating gap (two months on two threads, run on Google Colab,
+streaming directly from Lichess). It writes \texttt{counts.csv} (a few MB); all tables, tests,
+figures, this report (\LaTeX{} with pgfplots) and an interactive Plotly dashboard
+(\texttt{output/final/dashboard.html}) are rebuilt from it in seconds.
+\TBD{list exact Python/R packages and versions used for the analysis, if any}
+
+% India Focus: struck out in the official guidelines -> intentionally omitted.
+
+\subsection*{Challenges and Results Achieved}
+\textbf{Cleaning and design.} We drop games with no result (\SkipNoResult), abandoned games
+(\SkipAbandoned), missing ratings (\SkipNoRating) and rating gaps above 100 (\SkipGap). Games go
+into 100-point brackets by average rating and into a speed from \texttt{Event}. Openings are
+matched by Lichess name prefix (excluding gambit side-lines inside the drawish openings) and
+cover \OpeningGames{} games (\OpeningShare{}). With millions of games every difference has a
+tiny $p$-value, so we report effect sizes with 95\% CIs and treat a few rating points as small.
+\TBD{technical hurdles: e.g.\ file size/streaming, opening-name matching, memory, runtime}
+
+\textbf{Overall.} White wins \WhiteAll, draws \DrawAll{}, loses \BlackAll; average score
+\ScoreAll{} versus \ExpectedAll{} expected from ratings alone, i.e.\ $h=\HAll\pm\HAllCI$.
+
+\textbf{H1: rating.} \TBD{is H1 supported? Describe the shape of $h$ against rating}
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{0.49\linewidth}\centering
+\resizebox{\linewidth}{!}{\FigSpeed}
+\captionof{figure}{$h$ per 100-point bracket, by speed (95\% CIs; $<$1,000 games omitted).}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\resizebox{\linewidth}{!}{\FigGroupH}
+\captionof{figure}{$h$ by rating: aggressive vs drawish openings.}\label{fig:grouph}
+\end{minipage}
+\end{figure}
+
+\textbf{H2: openings.} Each opening is fitted separately; groups are compared with a $z$-test,
+$\mathrm{SE}(\hat h_A-\hat h_D)=\sqrt{\mathrm{SE}_A^2+\mathrm{SE}_D^2}$. Aggressive minus
+drawish: \CompareDiff{} points ($z=\CompareZ$, $p=$ \CompareP). \TBD{is H2 supported?}
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\caption{White's advantage by opening (all speeds).}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Opening & Games & Avg rating & White & Draw & Black & $h$ (pts) \\
+\midrule
+\OpeningRows \\ \midrule \GroupRows \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{H3: time control.} Each speed is its own set of games with its own $h$; each speed is
+compared with the next faster one by the same $z$-test. \TBD{is H3 supported?}
+
+\begin{table}[!htbp]
+\centering\footnotesize
+\caption{White's advantage by speed (all openings).}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Speed & Games & Avg rating & White & Draw & Black & $h$ (pts) \\
+\midrule
+\SpeedRows \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{0.49\linewidth}\centering
+\resizebox{\linewidth}{!}{\FigOpenings}
+\captionof{figure}{$h$ per opening with 95\% CIs.}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering
+\resizebox{\linewidth}{!}{\FigSpeedBars}
+\captionof{figure}{$h$ per speed with 95\% CIs.}
+\end{minipage}
+\end{figure}
+
+\textbf{Limitations.} Opening choice is not random (association, not causation); the two opening
+groups have different players (see Fig.~\ref{fig:grouph}); ratings are noisy and Lichess is not
+FIDE; games are not independent (active players contribute thousands), so true uncertainty is
+somewhat larger than our CIs; one site and two months only.
+
+\textbf{Conclusion.} \TBD{answer the three questions in a few sentences}
+
+% Optional extra figures/tables from report_numbers.tex if space allows:
+% \FigResults  \FigGroupDraws  \FigSpeedDraws  \CompareRows  \SpeedStepRows  \OpeningDefRows
+
+\newpage
+
+\section*{Section 3: Frequently Answered Questions (FAQ)}
+
+\textbf{Q1. How many games did you analyse and where did they come from?}\\
+\GamesUsed{} standard rated Lichess games from \MonthList{} (\GamesRead{} read, \PctUsed{} kept),
+from the CC0 Lichess Open Database.
+
+\textbf{Q2. What is $h$ and what is its overall value?}\\
+$h$ is the number of Elo rating points that, added to White's rating, makes the Elo-expected
+scores match the observed scores. Overall $h=\HAll\pm\HAllCI$.
+
+\textbf{Q3. Which games did you exclude and why?}\\
+Games with no result, abandoned games, missing ratings and rating gaps above 100 points: very
+lopsided games say little about the first move.
+
+\textbf{Q4. Why rating points instead of raw win rates?}\\
+A raw win rate mixes the first move with the rating gap and the draw rate. Rating points correct
+each game for the gap, so groups with different rating mixes are comparable, and draws count
+as half a point.
+
+\textbf{Q5. Why not fit a single slope of $h$ against rating?}\\
+The shape is not close to a straight line, so a slope would hide it; we fit $h$ per
+100-point bracket and read the shape from the plot.
+
+\textbf{Q6. With millions of games, isn't everything ``significant''?}\\
+Yes, so we report effect sizes with 95\% CIs and treat differences of a few rating points as
+small whatever the $p$-value.
+
+\textbf{Q7. Which openings were compared?}\\
+Aggressive: King's, Evans, Danish and Smith-Morra Gambits. Drawish: Petrov, Berlin, Queen's
+Gambit Declined, French Exchange (gambit side-lines excluded).
+
+\textbf{Q8. Does the data support the hypotheses?}\\
+\TBD{H1, H2, H3 each: supported / partly / not supported, with the key number}
+
+\textbf{Q9. Does the opening \emph{cause} the difference in $h$?}\\
+Not necessarily. Players choose openings, and styles, preparation and ratings differ between
+groups, so our results show association only.
+
+\textbf{Q10. What would you do with more time?}\\
+\TBD{e.g.\ more months, cluster-robust CIs by player, adjusting for player ratings, FIDE/OTB data}
+
+\newpage
+
+\section*{Section 4: Reflection Essay (Optional)}
+
+\TBD{Write your reflection here. Suggested prompts: key takeaways and skills learned;
+how the project went beyond textbook material; why real-world problems matter in a curriculum;
+relevance to placements and careers; navigating an open-ended, unguided problem; effort
+compared with standard homework; personal anecdotes, challenges and final thoughts.}
+
+\vspace{4cm}
+\hrule\vspace{1cm}\hrule\vspace{1cm}\hrule
+
+
+\newpage
 \section*{Summary}
 We measure the first-move advantage on Lichess using \GamesUsed{} standard rated games from
 \MonthList. Instead of comparing raw win rates, we fit White's advantage as a number of
