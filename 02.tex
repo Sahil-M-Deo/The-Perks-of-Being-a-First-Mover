@@ -242,7 +242,7 @@ Over all speeds, $h$ for the aggressive openings minus $h$ for the drawish openi
 \CompareDiff{} rating points ($z = \CompareZ$, $p = $ \CompareP).
 \FloatBarrier
 
-H2 is only partly supported. The drawish openings do have a higher draw rate than the aggressive ones (4.4\% vs 3.2\% overall), which matches the idea that drawish openings are more solid. But the opening-type effect on White's advantage is weak: aggressive openings are only \CompareDiff{} rating points higher than drawish openings, and the difference is not meaningful ($z=$\CompareZ, $p=$\CompareP). So the data do not show a large or consistent White advantage from playing aggressive openings once ratings are accounted for.
+H2 is not supported, although the drawish openings do have a higher draw rate than the aggressive ones (4.4\% vs 3.2\% overall), which matches the idea that drawish openings are more solid. But the opening-type effect on White's advantage is weak: aggressive openings are only \CompareDiff{} rating points higher than drawish openings, and the difference is not meaningful ($z=$\CompareZ, $p=$\CompareP). So the data do not show a large or consistent White advantage from playing aggressive openings once ratings are accounted for.
 
 \subsection*{Time controls (H3)}
 \begin{table}[!htbp]
@@ -311,7 +311,7 @@ Over \GamesUsed{} Lichess games from \MonthList{}, we measured White's first-mov
 \begin{itemize}
 \item \textbf{Overall.} White's first move is worth $h=\HAll\pm\HAllCI$ rating points. White scores \ScoreAll{} where the ratings alone predict \ExpectedAll{}, so the advantage is small but consistent.
 \item \textbf{Rating (H1): not supported.} $h$ does not peak at intermediate ratings and shrink at the top. It rises from about 8 points at 450 to 13 at 1050, dips to about 11 around 1450--1850, then climbs to about 18 at 2400--2600. The draw rate also rises with rating (3.3\% to 6.3\%), so draws do not explain a decline that is not there.
-\item \textbf{Openings (H2): partly supported.} The draw part holds: the drawish openings have more draws than the aggressive ones in every rating bracket (4.4\% vs 3.2\% overall). The $h$ part does not: the aggressive gambits have an $h$ that is \CompareDiff{} points higher than the drawish openings ($z=\CompareZ$, $p = $ \CompareP), i.e.\ no real difference. Within each group the openings vary far more (Danish Gambit $+37.1$, French Exchange $+4.2$).
+\item \textbf{Openings (H2): not supported.} The drawish openings do have more draws than the aggressive ones in every rating bracket (4.4\% vs 3.2\% overall). But White's edge is no bigger: the aggressive gambits have an $h$ that is \CompareDiff{} points higher than the drawish openings ($z=\CompareZ$, $p = $ \CompareP), i.e.\ no real difference. Within each group the openings vary far more (Danish Gambit $+37.1$, French Exchange $+4.2$).
 \item \textbf{Time control (H3): partly supported.} $h$ rises from $+9.9$ in Bullet to $+12.8$ in Blitz and $+14.2$ in Rapid, but levels off in Classical ($+13.4\pm0.7$, not meaningfully different from Rapid) and is lower in Correspondence ($+2.8\pm2.4$, only 80{,}774 games). The effect is small: about 4 points from Bullet to Rapid.
 \item \textbf{Caveat.} These are associations, not causal effects. Players choose their openings, and the two opening groups differ in rating (see Limitations).
 \end{itemize}
@@ -354,7 +354,7 @@ Gambit Declined, French Exchange (gambit side-lines excluded).
 
 \textbf{Q8. Does the data support the hypotheses?}\\
 \textbf{H1 (rating):} not supported. $h$ does not peak at intermediate ratings and then fall at the top; instead it rises from about 8 points at 450 to about 18 points at 2400--2600, so the pattern is not the predicted inverted-U. \\
-\textbf{H2 (opening):} partly supported. Drawish openings do produce more draws (4.4\% vs 3.2\%), but the opening-type effect on $h$ is not strong: aggressive openings are only \CompareDiff{} rating points higher than drawish openings ($z=$\CompareZ, $p=$\CompareP). \\ 
+\textbf{H2 (opening):} not supported. Drawish openings do produce more draws (4.4\% vs 3.2\%), but the opening-type effect on $h$ is not strong: aggressive openings are only \CompareDiff{} rating points higher than drawish openings ($z=$\CompareZ, $p=$\CompareP). \\ 
 \textbf{H3 (time control):} partly supported. $h$ rises from Bullet to Rapid, but levels off in Classical and is lower in Correspondence. The effect is small: about 4 points from Bullet to Rapid.
 
 \textbf{Q9. Does the opening \emph{cause} the difference in $h$?}\\
