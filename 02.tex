@@ -134,23 +134,29 @@ Total & \GamesRead & \GamesUsed & \PctUsed \\ \bottomrule
 \end{center}
 
 \subsection*{Tools and Software Packages}
-A C++ program streams the zstd files, reads only header lines, and counts games by opening,
-speed, 100-point rating bracket and rating gap (two months on two threads, run on Google Colab,
-streaming directly from Lichess). It writes \texttt{counts.csv} (a few MB); all tables, tests,
-figures, this report (\LaTeX{} with pgfplots) and an interactive Plotly dashboard
+A C++17 program streams the Lichess zstd files, reads only the header lines, and counts games by
+opening, speed, 100-point rating bracket and rating gap (two months, two threads, run on Google
+Colab). It writes \texttt{counts.csv} (a few MB); all tables, tests, figures, the report
+(\LaTeX{} with pgfplots) and the interactive Plotly dashboard
 (\texttt{output/final/dashboard.html}) are rebuilt from it in seconds.
-\TBD{list exact Python/R packages and versions used for the analysis, if any}
+No Python or R packages were used for the core analysis; the pipeline is compiled with
+\texttt{g++ -O2 -std=c++17 -pthread}. The Colab workflow installs the system library
+\texttt{libzstd-dev}, and the PDF build installs the LaTeX packages
+\texttt{texlive-latex-recommended}, \texttt{texlive-latex-extra},
+\texttt{texlive-fonts-recommended} and \texttt{texlive-pictures}.
 
-% India Focus: struck out in the official guidelines -> intentionally omitted.
 
 \subsection*{Challenges}
 \textbf{Cleaning and design.} We drop games with no result (\SkipNoResult), abandoned games
 (\SkipAbandoned), missing ratings (\SkipNoRating) and rating gaps above 100 (\SkipGap). Games go
 into 100-point brackets by average rating and into a speed from \texttt{Event}. Openings are
 matched by Lichess name prefix (excluding gambit side-lines inside the drawish openings) and
-cover \OpeningGames{} games (\OpeningShare{}). With millions of games every difference has a
-tiny $p$-value, so we report effect sizes with 95\% CIs and treat a few rating points as small.
-\TBD{technical hurdles: e.g.\ file size/streaming, opening-name matching, memory, runtime}
+cover \OpeningGames{} games (\OpeningShare{}). With millions of games, even small effects are
+statistically tiny, so we report effect sizes with 95\% CIs.
+The main technical hurdle was the data volume: monthly Lichess PGN files are tens of GB, so we
+streamed them directly through a C++ parser with zstd decompression and per-file threading. A
+second hurdle was naming inconsistencies across opening side-lines and gambit variants, which
+made a fixed-prefix rule necessary.
 
 \newpage
 
@@ -169,7 +175,6 @@ $h = \HAll \pm \HAllCI$ rating points.
 
 \FloatBarrier
 \subsection*{Does the advantage peak at intermediate ratings? (H1)}
-\TBD{interpretation: is H1 supported?}
 
 \begin{figure}[!htbp]
 \centering
@@ -177,6 +182,8 @@ $h = \HAll \pm \HAllCI$ rating points.
 \caption{$h$ in each 100-point rating bracket, by speed, with 95\% CIs. Brackets with fewer than
 1,000 games are left out.}
 \end{figure}
+
+H1 is not supported: $h$ does not have the expected inverted-U shape. It rises from roughly 8 points at 450 to about 18 points at 2400--2600, with no clear peak at intermediate ratings.
 
 \FloatBarrier
 \subsection*{Openings (H2)}
@@ -227,9 +234,10 @@ Speed & Aggressive & Drawish & Difference & $z$ & $p$ \\
 
 Over all speeds, $h$ for the aggressive openings minus $h$ for the drawish openings is
 \CompareDiff{} rating points ($z = \CompareZ$, $p = $ \CompareP).
+\FloatBarrier
 
-\TBD{interpretation: is H2 supported, and what does it say about White's advantage?}
-%\FloatBarrier
+H2 is only partly supported. The drawish openings do have a higher draw rate than the aggressive ones (4.4\% vs 3.2\% overall), which matches the idea that drawish openings are more solid. But the opening-type effect on White's advantage is weak: aggressive openings are only \CompareDiff{} rating points higher than drawish openings, and the difference is not meaningful ($z=$\CompareZ, $p=$\CompareP). So the data do not show a large or consistent White advantage from playing aggressive openings once ratings are accounted for.
+
 \subsection*{Time controls (H3)}
 \begin{table}[!htbp]
 \centering\small
@@ -269,17 +277,39 @@ Speeds & Slower & Faster & Difference & $z$ & $p$ \\
 \caption{Draw rate by rating for each speed.}
 \end{figure}
 
-\TBD{interpretation: is H3 supported?}
+\subsection*{Does the advantage vary with time control? (H3)}
+H3 is only partly supported. The advantage does increase with faster time controls, from $+9.9$ in Bullet to $+12.8$ in Blitz and $+14.2$ in Rapid, but levels off in Classical ($+13.4\pm0.7$, not meaningfully different from Rapid) and is lower in Correspondence ($+2.8\pm2.4$, only 80,774 games). The effect is small: about 4 points from Bullet to Rapid.
 
 \FloatBarrier
 
-\textbf{Limitations.} Opening choice is not random (association, not causation); the two opening
-groups have different players (see Fig.~\ref{fig:grouph}); ratings are noisy and Lichess is not
-FIDE; games are not independent (active players contribute thousands), so true uncertainty is
-somewhat larger than our CIs; one site and two months only.
+\section*{Limitations}
+\begin{itemize}
+\item \emph{Choosing an opening is not random.} Players who play the King's Gambit or the
+  Berlin differ in style and preparation, and the opening is chosen by one player (White for
+  the gambits and the French Exchange, Black for the Petrov, Berlin and QGD). Our $h$
+  corrects for the rating gap in each game, but the results show association, not that the
+  opening causes the difference.
+\item \emph{The groups have different players.} The comparison of the two opening groups doesn't
+  adjust for their players' ratings. The ``Avg rating'' column and Figure~\ref{fig:grouph}
+  (which compares the groups bracket by bracket) show how much that matters.
+\item \emph{Ratings are noisy}, especially for new accounts, which blurs the correction for the
+  rating gap. Lichess ratings also differ from FIDE ratings, so ``2200 on Lichess'' is not a
+  master.
+\item \emph{Games are not independent.} Active players contribute thousands of games, so the
+  real uncertainty is somewhat larger than our confidence intervals.
+\end{itemize}
+
 
 \section*{Conclusion}
-\TBD{answer to the three questions in a few sentences}
+Over \GamesUsed{} Lichess games from \MonthList{}, we measured White's first-move advantage as $h$, the number of rating points it is worth. Our findings:
+
+\begin{itemize}
+\item \textbf{Overall.} White's first move is worth $h=\HAll\pm\HAllCI$ rating points. White scores \ScoreAll{} where the ratings alone predict \ExpectedAll{}, so the advantage is small but consistent.
+\item \textbf{Rating (H1): not supported.} $h$ does not peak at intermediate ratings and shrink at the top. It rises from about 8 points at 450 to 13 at 1050, dips to about 11 around 1450--1850, then climbs to about 18 at 2400--2600. The draw rate also rises with rating (3.3\% to 6.3\%), so draws do not explain a decline that is not there.
+\item \textbf{Openings (H2): partly supported.} The draw part holds: the drawish openings have more draws than the aggressive ones in every rating bracket (4.4\% vs 3.2\% overall). The $h$ part does not: the aggressive gambits have an $h$ that is \CompareDiff{} points higher than the drawish openings ($z=\CompareZ$, $p = $ \CompareP), i.e.\ no real difference. Within each group the openings vary far more (Danish Gambit $+37.1$, French Exchange $+4.2$).
+\item \textbf{Time control (H3): partly supported.} $h$ rises from $+9.9$ in Bullet to $+12.8$ in Blitz and $+14.2$ in Rapid, but levels off in Classical ($+13.4\pm0.7$, not meaningfully different from Rapid) and is lower in Correspondence ($+2.8\pm2.4$, only 80{,}774 games). The effect is small: about 4 points from Bullet to Rapid.
+\item \textbf{Caveat.} These are associations, not causal effects. Players choose their openings, and the two opening groups differ in rating (see Limitations).
+\end{itemize}
 
 % Optional extra figures/tables from report_numbers.tex if space allows:
 % \FigResults  \FigGroupDraws  \FigSpeedDraws  \CompareRows  \SpeedStepRows  \OpeningDefRows
@@ -318,14 +348,20 @@ Aggressive: King's, Evans, Danish and Smith-Morra Gambits. Drawish: Petrov, Berl
 Gambit Declined, French Exchange (gambit side-lines excluded).
 
 \textbf{Q8. Does the data support the hypotheses?}\\
-\TBD{H1, H2, H3 each: supported / partly / not supported, with the key number}
+\textbf{H1 (rating):} not supported. $h$ does not peak at intermediate ratings and then fall at the top; instead it rises from about 8 points at 450 to about 18 points at 2400--2600, so the pattern is not the predicted inverted-U. \\
+\textbf{H2 (opening):} partly supported. Drawish openings do produce more draws (4.4\% vs 3.2\%), but the opening-type effect on $h$ is not strong: aggressive openings are only \CompareDiff{} rating points higher than drawish openings ($z=$\CompareZ, $p=$\CompareP). \\ 
+\textbf{H3 (time control):} partly supported. $h$ rises from Bullet to Rapid, but levels off in Classical and is lower in Correspondence. The effect is small: about 4 points from Bullet to Rapid.
 
 \textbf{Q9. Does the opening \emph{cause} the difference in $h$?}\\
 Not necessarily. Players choose openings, and styles, preparation and ratings differ between
 groups, so our results show association only.
 
 \textbf{Q10. What would you do with more time?}\\
-\TBD{e.g.\ more months, cluster-robust CIs by player, adjusting for player ratings, FIDE/OTB data}
+With more time, we would extend the dataset to more months and more pools of games, then fit
+cluster-robust confidence intervals by player to account for repeated observations from the same
+accounts. We would also adjust for the players' own rating distributions within each comparison,
+and compare against external data such as FIDE or over-the-board games to check whether the
+same effect appears outside Lichess.
 
 \newpage
 
@@ -336,28 +372,6 @@ This project taught us to turn a vague question (“is White better?”) into so
 Unlike textbook problems, the data were messy and nothing told us what the answer should be. We had to decide what to exclude and defend it. With so many games almost every difference was “significant”, so the real question became whether an effect was large enough to matter. We also learned that opening choice is not random, so our results show association, not causation.
 
 The open-ended start felt rudderless, but settling on three testable hypotheses (rating, opening, time control) gave us direction. The work was heavier than a normal assignment because data, modelling and writing all had to fit together, and a late change meant re-running everything. It was also the closest we have come to real data work: building a pipeline, checking the numbers, and explaining them to others.
-
-\FloatBarrier
-\section{Discussion}
-\TBD{what the results mean for White's advantage, written once the real results are in}
-
-\textbf{Limitations.}
-\begin{itemize}
-\item \emph{Choosing an opening is not random.} Players who play the King's Gambit or the
-  Berlin differ in style and preparation, and the opening is chosen by one player (White for
-  the gambits and the French Exchange, Black for the Petrov, Berlin and QGD). Our $h$
-  corrects for the rating gap in each game, but the results show association, not that the
-  opening causes the difference.
-\item \emph{The groups have different players.} The comparison of the two opening groups doesn't
-  adjust for their players' ratings. The ``Avg rating'' column and Figure~\ref{fig:grouph}
-  (which compares the groups bracket by bracket) show how much that matters.
-\item \emph{Ratings are noisy}, especially for new accounts, which blurs the correction for the
-  rating gap. Lichess ratings also differ from FIDE ratings, so ``2200 on Lichess'' is not a
-  master.
-\item \emph{Games are not independent.} Active players contribute thousands of games, so the
-  real uncertainty is somewhat larger than our confidence intervals.
-\item \emph{One site, two months.} The results describe Lichess players in early 2024.
-\end{itemize}
 
 \section*{References}
 {\small
