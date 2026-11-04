@@ -34,14 +34,37 @@ All of it is explained with worked examples in `reports/final/Theory.pdf`.
 ## What's where
 
     README.md                        this file
+    02.tex                           final report text
+    02.pdf                           the final report
+    report_numbers.tex               the final report's numbers, tables and figures (written by the program)
+    GROUP_02_SLIDES.pdf              presentation slides
+    GROUP_02.mp4                     presentation video
     scripts/
         white_advantage.cpp          main(): reads the arguments and runs everything below
-        src/                         the program, split by job (the list is at the top of
-                                     white_advantage.cpp)
+        src/                         the program, split by job:
+            common.h                 includes, macros and helpers shared by every file
+            settings.h               constants (bracket width, max rating gap, min games), speeds, command line options
+            openings.h               the openings, their groups, and how Lichess names map to them
+            file_reader.h            streams .pgn.zst files and decompresses them with zstd, 1 MB at a time
+            games.h                  reads each game's headers (result, ratings, speed, opening) into the counts
+            stats.h                  the counts by opening, speed, bracket and rating gap
+            counts_file.h            saves and loads counts.csv
+            fit.h                    maximum-likelihood fit of h (Newton's method) and its standard error
+            tests.h                  z-tests: aggressive vs drawish, each speed vs the next faster one
+            tables.h                 the printed tables, output.csv and openings.csv
+            format.h                 number formatting for the tables and the report
+            report.h                 writes report_numbers.tex: LaTeX macros, tables and pgfplots charts
+            dashboard.h              fills the dashboard with the data
+            dashboard_page.h         the dashboard's HTML, CSS and JavaScript
         white_advantage_colab.ipynb  runs it on Google Colab, streaming the data from Lichess
         stream_download.py           the notebook's download: resumes a dropped connection, checks SHA256
+        check_fit.py                 fits h again in Python from counts.csv and checks it against output.csv and openings.csv
+        h_as_score.py                adds White's extra expected score (percentage points) to the results
+        rating_mix.py                aggressive vs drawish by rating bracket: share of games, both h's and their gap
     output/
-        checkpoint1/                 the Checkpoint 1 results (output.csv, summary.txt)
+        checkpoint1/                 the Checkpoint 1 results
+            output.csv               results by speed and bracket
+            summary.txt              everything the program printed
         final/
             counts.csv               every game counted by opening, speed, bracket and rating gap
             output.csv               results by speed and bracket
@@ -49,13 +72,11 @@ All of it is explained with worked examples in `reports/final/Theory.pdf`.
             summary.txt              everything the program printed
             dashboard.html           interactive Plotly dashboard: compare openings or speeds
     reports/
-        proposal.pdf
-        checkpoint1/                 Checkpoint 1 report (report.tex, report_numbers.tex, checkpointOne.pdf)
-        final/
-            report.tex               final report text
-            report_numbers.tex       its numbers, tables and figures (written by the program)
-            finalReport.pdf          the final report
-            Theory.tex, Theory.pdf   the statistics explained, with worked examples
+        proposal.pdf                 the project proposal
+        checkpoint1/                 the Checkpoint 1 report, as submitted
+            report.tex               report text
+            report_numbers.tex       its numbers, tables and figures
+            checkpointOne.pdf        the report
 
 ## Running it
 
