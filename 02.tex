@@ -326,50 +326,52 @@ Over \GamesUsed{} Lichess games from \MonthList{}, we measured White's first-mov
 
 \section*{Section 3: Frequently Answered Questions (FAQ)}
 \hrule
-\textbf{Q1. How many games did you analyse and where did they come from?}\\
-\GamesUsed{} standard rated Lichess games from \MonthList{} (\GamesRead{} read, \PctUsed{} kept),
-from the CC0 Lichess Open Database.
+\textbf{Q1. In practical terms, how big is White's edge?} \emph{(objective)}\\
+$h=+11.9\pm0.1$ means White scores about 51.7\% against an equally rated opponent, 1.71 percentage
+points above 50\%. It ranges from $+1.43$ points in Bullet to $+2.04$ in Rapid.
 
-\textbf{Q2. What is $h$ and what is its overall value?}\\
-$h$ is the number of Elo rating points that, added to White's rating, makes the Elo-expected
-scores match the observed scores. Overall $h=\HAll\pm\HAllCI$.
+\textbf{Q2. Which openings give White the largest and smallest edge?} \emph{(objective)}\\
+Largest: Danish Gambit, $h=+37.1\pm1.0$ (White scores 5.3 points above 50\%). Smallest: French
+Exchange, $+4.2\pm0.7$ (0.6 points). The spread inside each group is far larger than the $+0.2$ gap
+between the aggressive and drawish groups.
 
-\textbf{Q3. Which games did you exclude and why?}\\
-Games with no result, abandoned games, missing ratings and rating gaps above 100 points: very
-lopsided games say little about the first move.
+\textbf{Q3. Are aggressive and drawish openings really equal at every rating?} \emph{(objective)}\\
+No, they only cancel out overall. Aggressive openings are ahead by $+4.5\pm1.3$ points at
+1500--1600, while drawish ones are ahead by $6.0\pm1.7$ at 2000--2100 and $6.7\pm2.2$ at 2100--2200.
 
-\textbf{Q4. Why rating points instead of raw win rates?}\\
+\textbf{Q4. How are the $\pm$ intervals for $h$ computed?} \emph{(methodological)}\\
+With $E_i(h)=1/(1+10^{-(d_i+h)/400})$ and $S_i\in\{1,\tfrac12,0\}$, the log-likelihood is
+$\ell(h)=\sum_i [S_i\ln E_i+(1-S_i)\ln(1-E_i)]$ and $\ell''(h)=-K^2\sum_i E_i(1-E_i)$, with
+$K=\ln 10/400$. The Fisher information is $I(\hat h)=-\ell''(\hat h)$; for large samples
+$\hat h\approx\mathcal N(h,\,1/I(\hat h))$, so $\mathrm{SE}=1/\sqrt{I(\hat h)}$ and the 95\% CI is
+$\hat h\pm1.96\,\mathrm{SE}$ (overall $\mathrm{SE}=0.028$, i.e.\ $\pm0.05$, shown rounded as $\pm0.1$). The same
+$I$ is the denominator of each Newton step. It assumes independent games, so the true intervals
+are somewhat wider (see Limitations).
+
+\textbf{Q5. How do you know the numbers are right?} \emph{(objective)}\\
+\texttt{check\_fit.py} refits every $h$ from \texttt{counts.csv} in pandas/NumPy, independently of
+the C++ code. All rows of \texttt{output.csv} and \texttt{openings.csv} match to within
+$5\times10^{-5}$ rating points.
+
+\textbf{Q6. Why rating points instead of raw win rates?} \emph{(methodological)}\\
 A raw win rate mixes the first move with the rating gap and the draw rate. Rating points correct
-each game for the gap, so groups with different rating mixes are comparable, and draws count
-as half a point.
+each game for the gap, so groups with different rating mixes are comparable.
 
-\textbf{Q5. Why not fit a single slope of $h$ against rating?}\\
-The shape is not close to a straight line, so a slope would hide it; we fit $h$ per
-100-point bracket and read the shape from the plot.
+\textbf{Q7. With millions of games, isn't everything ``significant''?} \emph{(methodological)}\\
+Yes, so we report effect sizes with 95\% CIs and treat differences of a few rating points as small
+whatever the $p$-value.
 
-\textbf{Q6. With millions of games, isn't everything ``significant''?}\\
-Yes, so we report effect sizes with 95\% CIs and treat differences of a few rating points as
-small whatever the $p$-value.
+\textbf{Q8. Why might $h$ rise at high ratings instead of falling?} \emph{(interpretive)}\\
+Our guess: weaker players blunder often enough to swamp a small edge, while stronger players
+convert small edges more reliably. The data show the pattern, not this explanation.
 
-\textbf{Q7. Which openings were compared?}\\
-Aggressive: King's, Evans, Danish and Smith-Morra Gambits. Drawish: Petrov, Berlin, Queen's
-Gambit Declined, French Exchange (gambit side-lines excluded).
+\textbf{Q9. Why is Correspondence so different ($+2.8\pm2.4$)?} \emph{(interpretive)}\\
+With days per move, both sides can think through any position, which may blunt the initiative.
+But it has only 80,774 games and the widest interval, so we do not read much into it.
 
-\textbf{Q8. Does the data support the hypotheses?}\\
-\textbf{H1 (rating):} not supported. $h$ does not peak at intermediate ratings and then fall at the top; instead it rises from about 8 points at 450 to about 18 points at 2400--2600, so the pattern is not the predicted inverted-U. \\
-\textbf{H2 (opening):} not supported. Drawish openings do produce more draws (4.4\% vs 3.2\%), but the opening-type effect on $h$ is not strong: aggressive openings are only \CompareDiff{} rating points higher than drawish openings ($z=$\CompareZ, $p=$\CompareP). \\ 
-\textbf{H3 (time control):} partly supported. $h$ rises from Bullet to Rapid, but levels off in Classical and is lower in Correspondence. The effect is small: about 4 points from Bullet to Rapid.
-
-\textbf{Q9. Does the opening \emph{cause} the difference in $h$?}\\
-Not necessarily. Players choose openings, and styles, preparation and ratings differ between
+\textbf{Q10. Does the opening \emph{cause} the difference in $h$?} \emph{(interpretive)}\\
+Not necessarily. Players choose their openings, and style, preparation and rating differ between
 groups, so our results show association only.
-
-\textbf{Q10. What would you do with more time?}\\
-With more time, we would extend the dataset to more months and more pools of games, then fit
-cluster-robust confidence intervals by player to account for repeated observations from the same
-accounts. We would also adjust for the players' own rating distributions within each comparison,
-and compare against external data such as FIDE or over-the-board games to check whether the
-same effect appears outside Lichess.
 
 \newpage
 
