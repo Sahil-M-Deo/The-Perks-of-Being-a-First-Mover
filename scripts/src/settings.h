@@ -9,7 +9,9 @@ const int MAX_RATING = 4000;
 // command line options
 int MAX_GAMES = 0;
 string REPORT_FILE = "";
-string COUNTS_IN = "";
+vector<string> COUNTS_IN;       // --from-counts can be given more than once; the counts are added up
+int CHECKPOINT_EVERY = 0;       // --checkpoint-every N: save partial_counts_<month>.csv every N games
+
 
 // UltraBullet has to come before Bullet, or "UltraBullet" games would match "Bullet" first
 enum Speed { ULTRABULLET, BULLET, BLITZ, RAPID, CLASSICAL, CORRESPONDENCE, OTHER, NUM_SPEEDS };

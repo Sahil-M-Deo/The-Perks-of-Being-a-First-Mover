@@ -39,6 +39,7 @@ All of it is explained with worked examples in `reports/final/Theory.pdf`.
         src/                         the program, split by job (the list is at the top of
                                      white_advantage.cpp)
         white_advantage_colab.ipynb  runs it on Google Colab, streaming the data from Lichess
+        stream_download.py           the notebook's download: resumes a dropped connection, checks SHA256
     output/
         checkpoint1/                 the Checkpoint 1 results (output.csv, summary.txt)
         final/
@@ -66,11 +67,22 @@ rebuilt from that file in seconds with `--from-counts`.
 
 Open the notebook straight from GitHub:
 [Open in Colab](https://colab.research.google.com/github/Sahil-M-Deo/The-Perks-of-Being-a-First-Mover/blob/main/scripts/white_advantage_colab.ipynb)
-(or upload `scripts/white_advantage_colab.ipynb` to colab.research.google.com), and run steps 1 to 4.
+(or upload `scripts/white_advantage_colab.ipynb` to colab.research.google.com) and press
+**Runtime → Run all**, allowing access to Google Drive when asked.
 The notebook clones this repo, so push any code changes before running it.
 It streams each month from Lichess straight into the program, so nothing big is saved anywhere.
-Do a test run with `MAX_GAMES = 1000000` first, then the full run. Download `results.zip` and
-put everything in it into `output/final/`, then push.
+
+The run is built to survive problems:
+- everything is saved to Google Drive as it goes, in `MyDrive/first_mover_runs/<RUN_NAME>/`
+- each month's counts are saved every 2,000,000 games and as soon as the month is finished
+- a dropped download reconnects and continues from the byte where it stopped (`scripts/stream_download.py`)
+- a month counts as done only when every byte arrived, the SHA256 matches Lichess's checksum and
+  the zstd stream ended cleanly; otherwise it is retried
+- a short test run goes first and stops the notebook if anything is wrong
+- after a disconnect, **Run all again with the same `RUN_NAME`**: finished months are skipped
+
+The results end up in `MyDrive/first_mover_runs/<RUN_NAME>/final/` (and `results.zip` is downloaded).
+Put them into `output/final/`, then push.
 
 ### 2. Rebuilding the results, dashboard and report from `counts.csv`
 
@@ -102,7 +114,8 @@ Each file is read on its own thread and the results are added together. Memory s
 | Option | Meaning |
 |---|---|
 | `--max-games N` | only read the first N games of each file (for a quick test run) |
-| `--from-counts FILE` | skip the games and load a saved `counts.csv` instead |
+| `--from-counts FILE` | skip the games and load a saved `counts.csv` instead; give it more than once to add several months together (the sum is saved as `counts.csv`) |
+| `--checkpoint-every N` | every N games, save each month's counts so far to `partial_counts_<month>.csv`, and each finished month to `counts_<month>.csv` |
 | `--report FILE` | write the numbers, tables and figures for `report.tex`, then build `finalReport.pdf` |
 
 The analysis settings are fixed in `scripts/src/settings.h`: 100-point rating brackets (by the
