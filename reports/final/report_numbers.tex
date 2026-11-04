@@ -1,35 +1,696 @@
 % placeholder: white_advantage --report report_numbers.tex replaces this file with the real numbers
-\newcommand{\MonthList}{\TBD{MonthList}}
-\newcommand{\GamesRead}{\TBD{GamesRead}}
-\newcommand{\GamesUsed}{\TBD{GamesUsed}}
-\newcommand{\PctUsed}{\TBD{PctUsed}}
-\newcommand{\SkipNoResult}{\TBD{SkipNoResult}}
-\newcommand{\SkipAbandoned}{\TBD{SkipAbandoned}}
-\newcommand{\SkipNoRating}{\TBD{SkipNoRating}}
-\newcommand{\SkipGap}{\TBD{SkipGap}}
-\newcommand{\FileRows}{\multicolumn{4}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\HAll}{\TBD{HAll}}
-\newcommand{\HAllCI}{\TBD{HAllCI}}
-\newcommand{\ScoreAll}{\TBD{ScoreAll}}
-\newcommand{\ExpectedAll}{\TBD{ExpectedAll}}
-\newcommand{\WhiteAll}{\TBD{WhiteAll}}
-\newcommand{\DrawAll}{\TBD{DrawAll}}
-\newcommand{\BlackAll}{\TBD{BlackAll}}
-\newcommand{\FigResults}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigResults, drawn by white\_advantage}}}}
-\newcommand{\OpeningRows}{\multicolumn{7}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\OpeningDefRows}{\multicolumn{4}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\OpeningGames}{\TBD{OpeningGames}}
-\newcommand{\OpeningShare}{\TBD{OpeningShare}}
-\newcommand{\GroupRows}{\multicolumn{7}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\CompareRows}{\multicolumn{6}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\CompareDiff}{\TBD{CompareDiff}}
-\newcommand{\CompareZ}{\TBD{CompareZ}}
-\newcommand{\CompareP}{\TBD{CompareP}}
-\newcommand{\FigOpenings}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigOpenings, drawn by white\_advantage}}}}
-\newcommand{\FigGroupH}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigGroupH, drawn by white\_advantage}}}}
-\newcommand{\FigGroupDraws}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigGroupDraws, drawn by white\_advantage}}}}
-\newcommand{\SpeedRows}{\multicolumn{7}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\SpeedStepRows}{\multicolumn{6}{c}{\TBD{filled in by white\_advantage}} \\}
-\newcommand{\FigSpeed}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigSpeed, drawn by white\_advantage}}}}
-\newcommand{\FigSpeedBars}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigSpeedBars, drawn by white\_advantage}}}}
-\newcommand{\FigSpeedDraws}{\fbox{\parbox[c][4cm][c]{0.9\linewidth}{\centering\TBD{figure FigSpeedDraws, drawn by white\_advantage}}}}
+\newcommand{\MonthList}{2024-01 and 2024-02}
+\newcommand{\GamesRead}{190,562,735}
+\newcommand{\GamesUsed}{162,175,412}
+\newcommand{\PctUsed}{85.1\%}
+\newcommand{\SkipNoResult}{6,007}
+\newcommand{\SkipAbandoned}{502,851}
+\newcommand{\SkipNoRating}{0}
+\newcommand{\SkipGap}{27,878,465}
+\newcommand{\FileRows}{2024-01 & 98,994,760 & 84,177,790 & 85.0\% \\
+2024-02 & 91,567,975 & 77,997,622 & 85.2\% \\
+}
+\newcommand{\HAll}{+11.9}
+\newcommand{\HAllCI}{0.1}
+\newcommand{\ScoreAll}{0.517}
+\newcommand{\ExpectedAll}{0.500}
+\newcommand{\WhiteAll}{49.7\%}
+\newcommand{\DrawAll}{4.0\%}
+\newcommand{\BlackAll}{46.3\%}
+\newcommand{\FigResults}{\begin{tikzpicture}
+\begin{axis}[width=\linewidth, height=6cm, grid=major, grid style={gray!25},
+  xlabel={Rating bracket (average of both players)}, ylabel={share of games (\%)},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=5,
+  tick label style={font=\small}, label style={font=\small},
+  xticklabel style={/pgf/number format/1000 sep={}}]
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}] coordinates {
+(450,45.64)
+(550,47.64)
+(650,48.85)
+(750,49.56)
+(850,49.83)
+(950,50.00)
+(1050,50.12)
+(1150,50.12)
+(1250,50.08)
+(1350,50.04)
+(1450,49.88)
+(1550,49.82)
+(1650,49.74)
+(1750,49.64)
+(1850,49.52)
+(1950,49.46)
+(2050,49.38)
+(2150,49.42)
+(2250,49.45)
+(2350,49.38)
+(2450,49.37)
+(2550,49.09)
+(2650,48.24)
+(2750,48.54)
+(2850,46.86)
+(2950,18.76)
+(3050,33.97)
+(3150,48.36)
+};
+\addlegendentry{White wins}
+\addplot+[red!70!black, mark=square*, mark size=1.3pt, mark options={fill=red!70!black}] coordinates {
+(450,11.04)
+(550,7.30)
+(650,5.50)
+(750,4.42)
+(850,3.89)
+(950,3.60)
+(1050,3.41)
+(1150,3.29)
+(1250,3.23)
+(1350,3.27)
+(1450,3.35)
+(1550,3.47)
+(1650,3.67)
+(1750,3.90)
+(1850,4.15)
+(1950,4.39)
+(2050,4.67)
+(2150,4.93)
+(2250,5.38)
+(2350,5.88)
+(2450,6.30)
+(2550,6.81)
+(2650,7.95)
+(2750,7.91)
+(2850,11.44)
+(2950,66.31)
+(3050,37.58)
+(3150,7.07)
+};
+\addlegendentry{Draws}
+\addplot+[green!50!black, mark=triangle*, mark size=1.3pt, mark options={fill=green!50!black}] coordinates {
+(450,43.32)
+(550,45.06)
+(650,45.66)
+(750,46.02)
+(850,46.27)
+(950,46.40)
+(1050,46.46)
+(1150,46.59)
+(1250,46.68)
+(1350,46.69)
+(1450,46.77)
+(1550,46.71)
+(1650,46.59)
+(1750,46.46)
+(1850,46.33)
+(1950,46.15)
+(2050,45.95)
+(2150,45.64)
+(2250,45.17)
+(2350,44.74)
+(2450,44.33)
+(2550,44.10)
+(2650,43.81)
+(2750,43.55)
+(2850,41.70)
+(2950,14.93)
+(3050,28.45)
+(3150,44.56)
+};
+\addlegendentry{Black wins}
+\end{axis}
+\end{tikzpicture}}
+\newcommand{\OpeningRows}{King's Gambit & 2,282,379 & 1633 & 51.3\% & 3.0\% & 45.6\% & $+18.4 \pm 0.5$ \\
+Evans Gambit & 165,739 & 1680 & 51.9\% & 3.3\% & 44.8\% & $+24.0 \pm 1.7$ \\
+Danish Gambit & 484,805 & 1635 & 53.8\% & 3.2\% & 43.0\% & $+37.1 \pm 1.0$ \\
+Smith-Morra Gambit & 1,136,895 & 1727 & 49.6\% & 3.6\% & 46.8\% & $+11.2 \pm 0.6$ \\
+\midrule
+Petrov's Defense & 2,071,985 & 1460 & 50.4\% & 3.9\% & 45.7\% & $+15.5 \pm 0.5$ \\
+Berlin Defense & 579,944 & 1544 & 50.3\% & 5.6\% & 44.1\% & $+20.8 \pm 0.9$ \\
+Queen's Gambit Declined & 3,660,887 & 1729 & 51.3\% & 4.5\% & 44.2\% & $+23.9 \pm 0.4$ \\
+French Exchange & 985,286 & 1765 & 48.1\% & 4.9\% & 47.1\% & $+4.2 \pm 0.7$ \\
+}
+\newcommand{\OpeningDefRows}{King's Gambit & Aggressive & \emph{King's Gambit} & -- \\
+Evans Gambit & Aggressive & \emph{Italian Game: Evans Gambit} & -- \\
+Danish Gambit & Aggressive & \emph{Danish Gambit} & -- \\
+Smith-Morra Gambit & Aggressive & \emph{Sicilian Defense: Smith-Morra Gambit} & -- \\
+Petrov's Defense & Drawish & \emph{Petrov's Defense}, \emph{Russian Game} & Stafford Gambit, Cochrane Gambit \\
+Berlin Defense & Drawish & \emph{Ruy Lopez: Berlin Defense} & -- \\
+Queen's Gambit Declined & Drawish & \emph{Queen's Gambit Declined} & Albin Countergambit, Chigorin Defense, Baltic Defense \\
+French Exchange & Drawish & \emph{French Defense: Exchange Variation} & -- \\
+}
+\newcommand{\OpeningGames}{11,367,920}
+\newcommand{\OpeningShare}{7.0\%}
+\newcommand{\GroupRows}{Aggressive (all 4) & 4,069,818 & 1662 & 51.2\% & 3.2\% & 45.6\% & $+18.8 \pm 0.3$ \\
+Drawish (all 4) & 7,298,102 & 1643 & 50.5\% & 4.4\% & 45.0\% & $+18.6 \pm 0.3$ \\
+Other openings & 141,698,824 & 1642 & 49.5\% & 4.0\% & 46.5\% & $+10.7 \pm 0.1$ \\
+}
+\newcommand{\CompareRows}{All speeds & $+18.8 \pm 0.3$ & $+18.6 \pm 0.3$ & $+0.2 \pm 0.4$ & +1.0 & $0.298$ \\
+Bullet & $+16.9 \pm 0.6$ & $+16.3 \pm 0.4$ & $+0.6 \pm 0.8$ & +1.7 & $0.097$ \\
+Blitz & $+19.5 \pm 0.5$ & $+18.9 \pm 0.4$ & $+0.6 \pm 0.6$ & +2.0 & $0.044$ \\
+Rapid & $+20.3 \pm 0.9$ & $+22.4 \pm 0.6$ & $-2.1 \pm 1.1$ & -3.7 & $1.8 \times 10^{-4}$ \\
+}
+\newcommand{\CompareDiff}{$+0.2 \pm 0.4$}
+\newcommand{\CompareZ}{1.0}
+\newcommand{\CompareP}{$0.298$}
+\newcommand{\FigOpenings}{\begin{tikzpicture}
+\begin{axis}[xbar, bar width=7pt, width=0.8\linewidth, height=6.2cm, xmin=0.0,
+  ytick={1,...,8}, yticklabels={{French Exchange},{Queen's Gambit Declined},{Berlin Defense},{Petrov's Defense},{Smith-Morra Gambit},{Danish Gambit},{Evans Gambit},{King's Gambit}},
+  xlabel={$h$ (rating points, all speeds)}, grid=major, grid style={gray!25},
+  tick label style={font=\small}, label style={font=\small},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=2]
+\addplot+[bar shift=0pt, draw=red!70!black, fill=red!70!black!40, error bars/.cd, x dir=both, x explicit, error bar style={black}] coordinates {
+(18.43,8) +- (0.45,0)
+(24.01,7) +- (1.69,0)
+(37.12,6) +- (0.99,0)
+(11.15,5) +- (0.64,0)
+};
+\addlegendentry{Aggressive}
+\addplot+[bar shift=0pt, draw=blue!70!black, fill=blue!70!black!40, error bars/.cd, x dir=both, x explicit, error bar style={black}] coordinates {
+(15.51,4) +- (0.48,0)
+(20.77,3) +- (0.90,0)
+(23.92,2) +- (0.36,0)
+(4.20,1) +- (0.69,0)
+};
+\addlegendentry{Drawish}
+\end{axis}
+\end{tikzpicture}}
+\newcommand{\FigGroupH}{\begin{tikzpicture}
+\begin{axis}[width=\linewidth, height=6cm, grid=major, grid style={gray!25},
+  xlabel={Rating bracket (average of both players)}, ylabel={$h$ (rating points)},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=5,
+  tick label style={font=\small}, label style={font=\small},
+  xticklabel style={/pgf/number format/1000 sep={}}]
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}, error bars/.cd, y dir=both, y explicit, error bar style={blue!70!black}] coordinates {
+(450,7.99) +- (0,5.29)
+(550,9.21) +- (0,2.29)
+(650,11.54) +- (0,1.16)
+(750,12.61) +- (0,0.69)
+(850,12.66) +- (0,0.47)
+(950,12.83) +- (0,0.35)
+(1050,13.03) +- (0,0.28)
+(1150,12.48) +- (0,0.25)
+(1250,11.95) +- (0,0.22)
+(1350,11.71) +- (0,0.20)
+(1450,10.73) +- (0,0.18)
+(1550,11.13) +- (0,0.17)
+(1650,11.13) +- (0,0.17)
+(1750,11.27) +- (0,0.17)
+(1850,11.29) +- (0,0.17)
+(1950,11.70) +- (0,0.19)
+(2050,12.13) +- (0,0.21)
+(2150,13.42) +- (0,0.26)
+(2250,15.23) +- (0,0.33)
+(2350,16.55) +- (0,0.44)
+(2450,17.93) +- (0,0.60)
+(2550,17.85) +- (0,0.85)
+(2650,15.86) +- (0,1.22)
+(2750,17.81) +- (0,1.81)
+(2850,18.35) +- (0,2.47)
+(2950,13.31) +- (0,2.30)
+(3050,19.83) +- (0,6.12)
+(3150,13.73) +- (0,12.87)
+};
+\addlegendentry{All games}
+\addplot+[red!70!black, mark=square*, mark size=1.3pt, mark options={fill=red!70!black}, error bars/.cd, y dir=both, y explicit, error bar style={red!70!black}] coordinates {
+(650,-3.65) +- (0,12.98)
+(750,17.04) +- (0,7.19)
+(850,21.53) +- (0,4.48)
+(950,20.88) +- (0,3.04)
+(1050,24.21) +- (0,2.18)
+(1150,23.91) +- (0,1.77)
+(1250,23.32) +- (0,1.48)
+(1350,23.96) +- (0,1.29)
+(1450,23.07) +- (0,1.14)
+(1550,23.35) +- (0,1.04)
+(1650,21.40) +- (0,0.98)
+(1750,18.63) +- (0,0.95)
+(1850,16.22) +- (0,0.98)
+(1950,11.92) +- (0,1.10)
+(2050,9.94) +- (0,1.36)
+(2150,10.37) +- (0,1.80)
+(2250,10.51) +- (0,2.57)
+(2350,11.87) +- (0,3.64)
+(2450,13.62) +- (0,5.27)
+(2550,14.18) +- (0,8.54)
+(2650,31.54) +- (0,12.82)
+(2750,26.71) +- (0,20.15)
+(2950,9.47) +- (0,19.19)
+};
+\addlegendentry{Aggressive}
+\addplot+[green!50!black, mark=triangle*, mark size=1.3pt, mark options={fill=green!50!black}, error bars/.cd, y dir=both, y explicit, error bar style={green!50!black}] coordinates {
+(550,22.29) +- (0,10.99)
+(650,23.34) +- (0,5.36)
+(750,24.41) +- (0,3.21)
+(850,24.98) +- (0,2.23)
+(950,23.64) +- (0,1.69)
+(1050,23.15) +- (0,1.36)
+(1150,21.86) +- (0,1.19)
+(1250,20.89) +- (0,1.05)
+(1350,19.92) +- (0,0.95)
+(1450,19.65) +- (0,0.88)
+(1550,18.82) +- (0,0.82)
+(1650,18.00) +- (0,0.79)
+(1750,17.93) +- (0,0.77)
+(1850,16.94) +- (0,0.79)
+(1950,16.03) +- (0,0.85)
+(2050,15.99) +- (0,0.99)
+(2150,17.10) +- (0,1.23)
+(2250,16.75) +- (0,1.66)
+(2350,17.52) +- (0,2.25)
+(2450,17.02) +- (0,3.08)
+(2550,17.54) +- (0,4.50)
+(2650,14.60) +- (0,6.35)
+(2750,23.39) +- (0,9.85)
+(2850,13.18) +- (0,11.13)
+(2950,5.58) +- (0,5.42)
+};
+\addlegendentry{Drawish}
+\end{axis}
+\end{tikzpicture}}
+\newcommand{\FigGroupDraws}{\begin{tikzpicture}
+\begin{axis}[width=\linewidth, height=6cm, grid=major, grid style={gray!25},
+  xlabel={Rating bracket (average of both players)}, ylabel={draws (\%)},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=5,
+  tick label style={font=\small}, label style={font=\small},
+  xticklabel style={/pgf/number format/1000 sep={}}]
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}] coordinates {
+(450,11.04)
+(550,7.30)
+(650,5.50)
+(750,4.42)
+(850,3.89)
+(950,3.60)
+(1050,3.41)
+(1150,3.29)
+(1250,3.23)
+(1350,3.27)
+(1450,3.35)
+(1550,3.47)
+(1650,3.67)
+(1750,3.90)
+(1850,4.15)
+(1950,4.39)
+(2050,4.67)
+(2150,4.93)
+(2250,5.38)
+(2350,5.88)
+(2450,6.30)
+(2550,6.81)
+(2650,7.95)
+(2750,7.91)
+(2850,11.44)
+(2950,66.31)
+(3050,37.58)
+(3150,7.07)
+};
+\addlegendentry{All games}
+\addplot+[red!70!black, mark=square*, mark size=1.3pt, mark options={fill=red!70!black}] coordinates {
+(650,5.18)
+(750,3.14)
+(850,3.01)
+(950,2.73)
+(1050,2.50)
+(1150,2.48)
+(1250,2.57)
+(1350,2.61)
+(1450,2.70)
+(1550,2.82)
+(1650,3.01)
+(1750,3.23)
+(1850,3.45)
+(1950,3.66)
+(2050,3.94)
+(2150,4.26)
+(2250,4.74)
+(2350,4.94)
+(2450,5.47)
+(2550,5.83)
+(2650,7.82)
+(2750,11.32)
+(2950,86.15)
+};
+\addlegendentry{Aggressive}
+\addplot+[green!50!black, mark=triangle*, mark size=1.3pt, mark options={fill=green!50!black}] coordinates {
+(550,7.74)
+(650,5.51)
+(750,4.35)
+(850,3.89)
+(950,3.51)
+(1050,3.40)
+(1150,3.25)
+(1250,3.21)
+(1350,3.29)
+(1450,3.41)
+(1550,3.60)
+(1650,3.85)
+(1750,4.20)
+(1850,4.62)
+(1950,4.99)
+(2050,5.41)
+(2150,5.65)
+(2250,6.24)
+(2350,7.20)
+(2450,7.68)
+(2550,8.57)
+(2650,13.13)
+(2750,12.53)
+(2850,31.77)
+(2950,90.51)
+};
+\addlegendentry{Drawish}
+\end{axis}
+\end{tikzpicture}}
+\newcommand{\SpeedRows}{All speeds & 162,175,412 & 1638 & 49.7\% & 4.0\% & 46.3\% & $+11.9 \pm 0.1$ \\
+UltraBullet & 722,976 & 1611 & 50.3\% & 2.0\% & 47.8\% & $+9.1 \pm 0.8$ \\
+Bullet & 59,945,392 & 1716 & 49.9\% & 3.0\% & 47.1\% & $+9.9 \pm 0.1$ \\
+Blitz & 77,918,475 & 1613 & 49.6\% & 4.4\% & 46.0\% & $+12.8 \pm 0.1$ \\
+Rapid & 22,650,621 & 1520 & 49.6\% & 4.9\% & 45.5\% & $+14.2 \pm 0.1$ \\
+Classical & 857,174 & 1569 & 49.1\% & 5.7\% & 45.2\% & $+13.4 \pm 0.7$ \\
+Correspondence & 80,774 & 1789 & 47.5\% & 5.7\% & 46.8\% & $+2.8 \pm 2.4$ \\
+}
+\newcommand{\SpeedStepRows}{Bullet vs UltraBullet & $+9.9 \pm 0.1$ & $+9.1 \pm 0.8$ & $+0.8 \pm 0.8$ & +1.9 & $0.060$ \\
+Blitz vs Bullet & $+12.8 \pm 0.1$ & $+9.9 \pm 0.1$ & $+2.9 \pm 0.1$ & +47.8 & $< 10^{-300}$ \\
+Rapid vs Blitz & $+14.2 \pm 0.1$ & $+12.8 \pm 0.1$ & $+1.4 \pm 0.2$ & +16.9 & $9.6 \times 10^{-64}$ \\
+Classical vs Rapid & $+13.4 \pm 0.7$ & $+14.2 \pm 0.1$ & $-0.8 \pm 0.8$ & -2.0 & $0.042$ \\
+Correspondence vs Classical & $+2.8 \pm 2.4$ & $+13.4 \pm 0.7$ & $-10.6 \pm 2.5$ & -8.2 & $2.3 \times 10^{-16}$ \\
+}
+\newcommand{\FigSpeed}{\begin{tikzpicture}
+\begin{axis}[width=\linewidth, height=6cm, grid=major, grid style={gray!25},
+  xlabel={Rating bracket (average of both players)}, ylabel={$h$ (rating points)},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=5,
+  tick label style={font=\small}, label style={font=\small},
+  xticklabel style={/pgf/number format/1000 sep={}}]
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}, error bars/.cd, y dir=both, y explicit, error bar style={blue!70!black}] coordinates {
+(750,33.37) +- (0,21.15)
+(850,13.80) +- (0,11.76)
+(950,13.24) +- (0,7.75)
+(1050,10.81) +- (0,5.41)
+(1150,11.97) +- (0,4.28)
+(1250,10.84) +- (0,3.22)
+(1350,8.84) +- (0,2.81)
+(1450,8.22) +- (0,2.44)
+(1550,7.70) +- (0,2.20)
+(1650,9.36) +- (0,2.07)
+(1750,9.11) +- (0,2.27)
+(1850,10.45) +- (0,2.54)
+(1950,10.11) +- (0,3.08)
+(2050,6.41) +- (0,4.18)
+(2150,7.27) +- (0,5.87)
+(2250,6.27) +- (0,7.54)
+(2350,4.78) +- (0,9.71)
+(2450,-5.68) +- (0,18.95)
+};
+\addlegendentry{UltraBullet}
+\addplot+[red!70!black, mark=square*, mark size=1.3pt, mark options={fill=red!70!black}, error bars/.cd, y dir=both, y explicit, error bar style={red!70!black}] coordinates {
+(450,7.15) +- (0,13.78)
+(550,9.53) +- (0,5.86)
+(650,8.97) +- (0,2.67)
+(750,11.67) +- (0,1.45)
+(850,9.94) +- (0,0.94)
+(950,8.82) +- (0,0.67)
+(1050,8.45) +- (0,0.52)
+(1150,7.86) +- (0,0.44)
+(1250,7.50) +- (0,0.39)
+(1350,7.75) +- (0,0.35)
+(1450,7.33) +- (0,0.32)
+(1550,7.91) +- (0,0.30)
+(1650,8.62) +- (0,0.29)
+(1750,9.39) +- (0,0.28)
+(1850,9.95) +- (0,0.28)
+(1950,10.80) +- (0,0.29)
+(2050,11.51) +- (0,0.32)
+(2150,12.63) +- (0,0.36)
+(2250,14.39) +- (0,0.44)
+(2350,16.34) +- (0,0.55)
+(2450,17.58) +- (0,0.71)
+(2550,17.58) +- (0,0.97)
+(2650,15.24) +- (0,1.35)
+(2750,17.93) +- (0,1.90)
+(2850,17.93) +- (0,2.56)
+(2950,15.46) +- (0,2.88)
+(3050,19.87) +- (0,6.15)
+(3150,13.82) +- (0,12.87)
+};
+\addlegendentry{Bullet}
+\addplot+[green!50!black, mark=triangle*, mark size=1.3pt, mark options={fill=green!50!black}, error bars/.cd, y dir=both, y explicit, error bar style={green!50!black}] coordinates {
+(450,5.63) +- (0,7.52)
+(550,8.34) +- (0,3.18)
+(650,11.33) +- (0,1.61)
+(750,12.60) +- (0,0.96)
+(850,13.31) +- (0,0.65)
+(950,14.13) +- (0,0.49)
+(1050,14.58) +- (0,0.40)
+(1150,13.97) +- (0,0.35)
+(1250,13.39) +- (0,0.31)
+(1350,12.91) +- (0,0.28)
+(1450,12.30) +- (0,0.26)
+(1550,12.48) +- (0,0.25)
+(1650,12.06) +- (0,0.24)
+(1750,11.99) +- (0,0.24)
+(1850,11.79) +- (0,0.24)
+(1950,12.02) +- (0,0.27)
+(2050,12.62) +- (0,0.31)
+(2150,14.34) +- (0,0.40)
+(2250,16.57) +- (0,0.55)
+(2350,16.87) +- (0,0.77)
+(2450,18.78) +- (0,1.13)
+(2550,18.85) +- (0,1.75)
+(2650,19.12) +- (0,2.90)
+(2750,16.21) +- (0,6.16)
+(2850,24.75) +- (0,9.41)
+(2950,9.98) +- (0,4.60)
+};
+\addlegendentry{Blitz}
+\addplot+[orange!90!black, mark=diamond*, mark size=1.3pt, mark options={fill=orange!90!black}, error bars/.cd, y dir=both, y explicit, error bar style={orange!90!black}] coordinates {
+(450,11.77) +- (0,8.86)
+(550,10.63) +- (0,4.01)
+(650,13.70) +- (0,2.16)
+(750,13.49) +- (0,1.40)
+(850,14.23) +- (0,0.99)
+(950,15.00) +- (0,0.78)
+(1050,15.98) +- (0,0.64)
+(1150,16.09) +- (0,0.57)
+(1250,15.73) +- (0,0.51)
+(1350,15.56) +- (0,0.48)
+(1450,12.79) +- (0,0.45)
+(1550,13.96) +- (0,0.44)
+(1650,13.65) +- (0,0.44)
+(1750,13.41) +- (0,0.45)
+(1850,13.28) +- (0,0.49)
+(1950,13.57) +- (0,0.56)
+(2050,13.10) +- (0,0.74)
+(2150,14.10) +- (0,1.06)
+(2250,15.35) +- (0,1.66)
+(2350,18.72) +- (0,2.76)
+(2450,19.67) +- (0,4.89)
+(2550,14.90) +- (0,10.25)
+(2650,15.88) +- (0,19.47)
+(2950,8.53) +- (0,6.82)
+};
+\addlegendentry{Rapid}
+\addplot+[violet!80!black, mark=pentagon*, mark size=1.3pt, mark options={fill=violet!80!black}, error bars/.cd, y dir=both, y explicit, error bar style={violet!80!black}] coordinates {
+(750,-6.08) +- (0,21.70)
+(850,9.10) +- (0,10.79)
+(950,6.37) +- (0,6.53)
+(1050,13.31) +- (0,4.78)
+(1150,16.16) +- (0,3.71)
+(1250,15.37) +- (0,2.81)
+(1350,16.76) +- (0,2.42)
+(1450,11.73) +- (0,2.07)
+(1550,11.91) +- (0,1.82)
+(1650,15.01) +- (0,1.94)
+(1750,13.92) +- (0,2.10)
+(1850,12.96) +- (0,2.47)
+(1950,12.17) +- (0,3.16)
+(2050,9.84) +- (0,4.86)
+(2150,12.46) +- (0,7.76)
+(2250,12.54) +- (0,13.27)
+(2650,6.21) +- (0,15.21)
+};
+\addlegendentry{Classical}
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}, error bars/.cd, y dir=both, y explicit, error bar style={blue!70!black}] coordinates {
+(1350,-19.66) +- (0,18.75)
+(1450,-14.66) +- (0,8.94)
+(1550,-21.84) +- (0,5.68)
+(1650,17.32) +- (0,8.30)
+(1750,13.90) +- (0,6.90)
+(1850,12.07) +- (0,6.38)
+(1950,14.18) +- (0,6.55)
+(2050,6.91) +- (0,7.43)
+(2150,18.90) +- (0,10.03)
+(2250,13.20) +- (0,13.30)
+};
+\addlegendentry{Correspondence}
+\end{axis}
+\end{tikzpicture}}
+\newcommand{\FigSpeedBars}{\begin{tikzpicture}
+\begin{axis}[xbar, bar width=7pt, width=0.8\linewidth, height=4.9cm, xmin=0.0,
+  ytick={1,...,6}, yticklabels={{Correspondence},{Classical},{Rapid},{Blitz},{Bullet},{UltraBullet}},
+  xlabel={$h$ (rating points, all openings)}, grid=major, grid style={gray!25},
+  tick label style={font=\small}, label style={font=\small},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=2]
+\addplot+[bar shift=0pt, draw=teal!70!black, fill=teal!70!black!40, error bars/.cd, x dir=both, x explicit, error bar style={black}] coordinates {
+(9.15,6) +- (0.81,0)
+(9.93,5) +- (0.09,0)
+(12.81,4) +- (0.08,0)
+(14.21,3) +- (0.14,0)
+(13.43,2) +- (0.74,0)
+(2.82,1) +- (2.42,0)
+};
+\end{axis}
+\end{tikzpicture}}
+\newcommand{\FigSpeedDraws}{\begin{tikzpicture}
+\begin{axis}[width=\linewidth, height=6cm, grid=major, grid style={gray!25},
+  xlabel={Rating bracket (average of both players)}, ylabel={draws (\%)},
+  legend style={draw=none, font=\small, at={(0.5,1.02)}, anchor=south},
+  legend columns=5,
+  tick label style={font=\small}, label style={font=\small},
+  xticklabel style={/pgf/number format/1000 sep={}}]
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}] coordinates {
+(750,1.49)
+(850,2.49)
+(950,1.35)
+(1050,1.34)
+(1150,1.01)
+(1250,0.65)
+(1350,0.71)
+(1450,0.75)
+(1550,1.27)
+(1650,1.93)
+(1750,2.50)
+(1850,3.22)
+(1950,3.50)
+(2050,3.87)
+(2150,3.73)
+(2250,4.42)
+(2350,5.17)
+(2450,5.11)
+};
+\addlegendentry{UltraBullet}
+\addplot+[red!70!black, mark=square*, mark size=1.3pt, mark options={fill=red!70!black}] coordinates {
+(450,2.39)
+(550,1.32)
+(650,1.37)
+(750,1.39)
+(850,1.39)
+(950,1.52)
+(1050,1.63)
+(1150,1.73)
+(1250,1.83)
+(1350,2.03)
+(1450,2.21)
+(1550,2.39)
+(1650,2.65)
+(1750,2.89)
+(1850,3.17)
+(1950,3.40)
+(2050,3.70)
+(2150,3.98)
+(2250,4.35)
+(2350,4.85)
+(2450,5.29)
+(2550,5.80)
+(2650,6.48)
+(2750,7.12)
+(2850,8.10)
+(2950,50.37)
+(3050,37.11)
+(3150,7.08)
+};
+\addlegendentry{Bullet}
+\addplot+[green!50!black, mark=triangle*, mark size=1.3pt, mark options={fill=green!50!black}] coordinates {
+(450,11.13)
+(550,7.44)
+(650,5.61)
+(750,4.79)
+(850,4.36)
+(950,4.11)
+(1050,3.95)
+(1150,3.84)
+(1250,3.74)
+(1350,3.77)
+(1450,3.84)
+(1550,3.95)
+(1650,4.13)
+(1750,4.35)
+(1850,4.60)
+(1950,4.89)
+(2050,5.29)
+(2150,5.78)
+(2250,6.62)
+(2350,7.55)
+(2450,8.48)
+(2550,9.83)
+(2650,11.30)
+(2750,13.67)
+(2850,52.10)
+(2950,94.20)
+};
+\addlegendentry{Blitz}
+\addplot+[orange!90!black, mark=diamond*, mark size=1.3pt, mark options={fill=orange!90!black}] coordinates {
+(450,14.52)
+(550,9.88)
+(650,7.97)
+(750,6.45)
+(850,5.58)
+(950,5.03)
+(1050,4.71)
+(1150,4.40)
+(1250,4.29)
+(1350,4.17)
+(1450,4.16)
+(1550,4.25)
+(1650,4.49)
+(1750,4.81)
+(1850,5.24)
+(1950,5.70)
+(2050,6.33)
+(2150,7.19)
+(2250,8.25)
+(2350,10.04)
+(2450,12.02)
+(2550,15.32)
+(2650,20.00)
+(2950,95.92)
+};
+\addlegendentry{Rapid}
+\addplot+[violet!80!black, mark=pentagon*, mark size=1.3pt, mark options={fill=violet!80!black}] coordinates {
+(750,12.87)
+(850,9.41)
+(950,6.93)
+(1050,5.84)
+(1150,4.96)
+(1250,4.81)
+(1350,4.48)
+(1450,4.29)
+(1550,4.52)
+(1650,4.92)
+(1750,5.81)
+(1850,6.61)
+(1950,7.62)
+(2050,10.42)
+(2150,12.19)
+(2250,16.25)
+(2650,95.50)
+};
+\addlegendentry{Classical}
+\addplot+[blue!70!black, mark=*, mark size=1.3pt, mark options={fill=blue!70!black}] coordinates {
+(1350,3.83)
+(1450,3.74)
+(1550,2.91)
+(1650,3.11)
+(1750,3.88)
+(1850,5.23)
+(1950,6.41)
+(2050,9.43)
+(2150,9.41)
+(2250,13.22)
+};
+\addlegendentry{Correspondence}
+\end{axis}
+\end{tikzpicture}}
