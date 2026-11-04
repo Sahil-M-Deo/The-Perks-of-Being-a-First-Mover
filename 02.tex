@@ -92,7 +92,7 @@ Sanidhya & Statistical modelling: fitting $h$, confidence intervals and the $z$-
 Daksh Maahor & Data cleaning and opening classification; win/draw/loss rates. \\
 Sahil & Data engineering: the C++ streaming parser and the Colab pipeline. \\
 VadaPavJai & Visualisation: figures, the Plotly dashboard and the report. \\
-Claude & Progress Spreadsheet Creation and added safety checks to the colab pipeline code. \\
+Claude & Progress spreadsheet creation, safety checks in the Colab pipeline code, and final report checks and edits. \\
 \end{tabularx}
 
 \newpage
@@ -141,8 +141,11 @@ opening, speed, 100-point rating bracket and rating gap (two months, two threads
 Colab). It writes \texttt{counts.csv} (a few MB); all tables, tests, figures, the report
 (\LaTeX{} with pgfplots) and the interactive Plotly dashboard
 (\texttt{output/final/dashboard.html}) are rebuilt from it in seconds.
-No Python or R packages were used for the core analysis; the pipeline is compiled with
-\texttt{g++ -O2 -std=c++17 -pthread}. The Colab workflow installs the system library
+The pipeline is compiled with \texttt{g++ -O2 -std=c++17 -pthread}. In Python, \texttt{pandas} and
+\texttt{NumPy} refit every $h$ from \texttt{counts.csv} independently of the C++ code and match all
+of \texttt{output.csv} and \texttt{openings.csv} (\texttt{check\_fit.py}), and add two extra
+summaries (\texttt{h\_as\_score.py}, \texttt{rating\_mix.py}); the Colab download uses
+\texttt{requests}. The dashboard uses \texttt{plotly.js}. The Colab workflow installs the system library
 \texttt{libzstd-dev}, and the PDF build installs the LaTeX packages
 \texttt{texlive-latex-recommended}, \texttt{texlive-latex-extra},
 \texttt{texlive-fonts-recommended} and \texttt{texlive-pictures}.
