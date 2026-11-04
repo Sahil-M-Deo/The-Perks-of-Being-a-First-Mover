@@ -4,7 +4,7 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[a4paper,margin=2cm,top=1.8cm,bottom=2cm]{geometry}
 \usepackage[T1]{fontenc}
-\usepackage[sc]{mathpazo}
+\usepackage{mathptmx}
 \linespread{1.05}
 \usepackage{courier}
 \usepackage[scaled=0.9]{helvet}
@@ -68,15 +68,17 @@ CS215 Open Project \quad$\cdot$\quad Final Report \quad$\cdot$\quad Group 02\\[2
 \begin{itemize}[leftmargin=1em,itemsep=0pt,topsep=0pt]
 \item \url{https://claude.ai/share/041dbe60-e304-4ada-bc7e-8d070f0b5a94}
 \item \url{https://claude.ai/share/1bb9222d-6e23-4b2d-8803-6cdff0f0e31c}
+\item \url{https://claude.ai/code/session_01PXyFhprEmSRAuFAiQ7o4je}
 \end{itemize}
 \end{minipage} \\
 \textbf{7. Video Presentation} & \url{https://drive.google.com/file/d/1d1iBmvHLGC9XuQnEBNOylZaHz9B8BAjR/view} \\
 \textbf{8. GitHub Repository} & \url{https://github.com/cs215-cse-iitb/dai-aug-2026-openproject-group-2} \\
 \textbf{9. GitHub Handles and Initial Commit} & \\
-\hspace{1em}Sanidhya & \url{https://github.com/SS3642} \quad earliest commit: October 21, 2026 \\
-\hspace{1em}Daksh Maahor & \url{https://github.com/Daksh-Maahor} \quad earliest commit: November 3, 2026 \\
-\hspace{1em}Sahil & \url{https://github.com/Sahil-Deo-IITB} \quad earliest commit: November 3, 2026 \\
-\hspace{1em}VadaPavJai & \url{https://github.com/nauseated-potato} \quad earliest commit: October 18, 2026 \\
+\hspace{1em}Sanidhya & \url{https://github.com/SS3642} \quad October 21, 2026 \\
+\hspace{1em}Daksh Maahor & \url{https://github.com/Daksh-Maahor} \quad November 3, 2026 \\
+\hspace{1em}Sahil & \url{https://github.com/Sahil-M-Deo} \quad October 17, 2026 \\
+ & \url{https://github.com/Sahil-Deo-IITB} \quad November 3, 2026 \\
+\hspace{1em}VadaPavJai & \url{https://github.com/nauseated-potato} \quad October 18, 2026 \\
 \textbf{10. Contribution Breakdown} &
   Unequal (25b0944: 100\%, 25b0974: 100\%, 25b0991: 100\%, 25b1030: 100\%, LLM: 25\%)\\
 \bottomrule
@@ -146,6 +148,12 @@ No Python or R packages were used for the core analysis; the pipeline is compile
 \texttt{texlive-fonts-recommended} and \texttt{texlive-pictures}.
 
 
+\subsection*{India Focus}
+Chess originated in India as \emph{chaturanga}, and India today has one of the world's largest
+and fastest-growing chess communities, much of it playing online on platforms like Lichess.
+Lichess records carry no nationality, so our sample is global, and the results describe the
+online rating pools Indian players compete in.
+
 \subsection*{Challenges}
 \textbf{Cleaning and design.} We drop games with no result (\SkipNoResult), abandoned games
 (\SkipAbandoned), missing ratings (\SkipNoRating) and rating gaps above 100 (\SkipGap). Games go
@@ -157,8 +165,6 @@ The main technical hurdle was the data volume: monthly Lichess PGN files are ten
 streamed them directly through a C++ parser with zstd decompression and per-file threading. A
 second hurdle was naming inconsistencies across opening side-lines and gambit variants, which
 made a fixed-prefix rule necessary.
-
-\newpage
 
 \subsection*{Results}
 \FloatBarrier
@@ -277,8 +283,7 @@ Speeds & Slower & Faster & Difference & $z$ & $p$ \\
 \caption{Draw rate by rating for each speed.}
 \end{figure}
 
-\subsection*{Does the advantage vary with time control? (H3)}
-H3 is only partly supported. The advantage does increase with faster time controls, from $+9.9$ in Bullet to $+12.8$ in Blitz and $+14.2$ in Rapid, but levels off in Classical ($+13.4\pm0.7$, not meaningfully different from Rapid) and is lower in Correspondence ($+2.8\pm2.4$, only 80,774 games). The effect is small: about 4 points from Bullet to Rapid.
+H3 is only partly supported. The advantage does increase with slower time controls, from $+9.9$ in Bullet to $+12.8$ in Blitz and $+14.2$ in Rapid, but levels off in Classical ($+13.4\pm0.7$, not meaningfully different from Rapid) and is lower in Correspondence ($+2.8\pm2.4$, only 80,774 games). The effect is small: about 4 points from Bullet to Rapid.
 
 \FloatBarrier
 

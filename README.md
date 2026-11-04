@@ -29,7 +29,7 @@ Each opening, each speed and each rating bracket is treated as its own set of ga
 own maximum-likelihood `h`. How `h` changes with rating is read from the bracket-by-bracket charts.
 Two sets of games are compared with a z-test for the difference (aggressive vs drawish openings,
 and each speed vs the next faster one).
-All of it is explained with worked examples in `reports/final/Theory.pdf`.
+The method is explained in Section 2 of `02.pdf`.
 
 ## What's where
 
@@ -112,7 +112,7 @@ Either run step 5 of the notebook, or on your own machine (needs g++, the zstd l
 
     g++ -O2 -std=c++17 -pthread scripts/white_advantage.cpp -o scripts/white_advantage -lzstd
     cd output/final
-    ../../scripts/white_advantage --from-counts counts.csv --report ../../reports/final/report_numbers.tex
+    ../../scripts/white_advantage --from-counts counts.csv --report ../../report_numbers.tex
 
 That writes `output/final/output.csv`, `openings.csv`, `dashboard.html`,
 `reports/final/report_numbers.tex` and builds `reports/final/finalReport.pdf`.
@@ -125,7 +125,7 @@ After editing `report.tex` by hand, rebuild only the PDF from `reports/final/` w
 If you have the monthly files on your machine, keep them outside the repo (they're tens of GB)
 and pass their paths, from `output/final/`:
 
-    ../../scripts/white_advantage /path/to/lichess_db_standard_rated_2024-0*.pgn.zst --report ../../reports/final/report_numbers.tex | tee summary.txt
+    ../../scripts/white_advantage /path/to/lichess_db_standard_rated_2024-0*.pgn.zst --report ../../report_numbers.tex | tee summary.txt
 
 Each file is read on its own thread and the results are added together. Memory stays small
 (about 20 MB per file).
