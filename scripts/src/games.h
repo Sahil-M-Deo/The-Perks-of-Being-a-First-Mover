@@ -4,6 +4,7 @@
 #include "openings.h"
 #include "stats.h"
 #include "file_reader.h"
+#include "counts_file.h"
 
 // header lines look like [WhiteElo "1540"]: key = WhiteElo, value = 1540
 string headerKey(string &line) {
@@ -83,11 +84,60 @@ void readHeader(string &line, Game &game) {
     else if (key=="Opening") game.opening = value;
 }
 
+// "lichess_db_standard_rated_2024-01.pgn.zst" -> "2024-01"
+// only the file name is searched, so a folder like ".../run_2024-01_2024-02/" can't be mistaken for it
+string monthOf(string path) {
+    int slash = path.rfind('/');
+    if (slash!=(int)string::npos) path = path.substr(slash + 1);
+    for (int i=0; i+7<=(int)path.size(); i++) {
+        string s = path.substr(i, 7);
+        bool isMonth = isdigit(s[0]) && isdigit(s[1]) && isdigit(s[2]) && isdigit(s[3]) &&
+                s[4]=='-' && isdigit(s[5]) && isdigit(s[6]);
+        if (isMonth) return s;
+    }
+    return path;
+}
+
+// the threads print at the same time, so one line at a time
+mutex printLock;
+
+string clockTime() {
+    time_t now = time(nullptr);
+    char text[20];
+    strftime(text, sizeof text, "%H:%M:%S", localtime(&now));
+    return text;
+}
+
+// every CHECKPOINT_EVERY games: print how far it got and save the counts so far
+void checkpoint(string month, Stats &st, chrono::steady_clock::time_point start) {
+    double seconds = chrono::duration<double>(chrono::steady_clock::now() - start).count();
+    bool saved = writeOneMonth("partial_counts_" + month + ".csv", month, st, "partial");
+    lock_guard<mutex> lock(printLock);
+    cout << "[" << clockTime() << "] " << month << ": " << st.seen << " games read, " << st.used
+            << " used, " << (int)(st.seen / max(seconds, 1.0)) << " games/s"
+            << (saved ? ", checkpoint saved" : ", CHECKPOINT NOT SAVED") << endl;
+}
+
+// with --checkpoint-every, each month is saved as counts_<month>.csv as soon as it's done
+void finishFile(string month, Stats &st) {
+    string status = "complete";
+    if (st.problem!="") status = "incomplete: " + st.problem;
+    else if (MAX_GAMES>0) status = "test run (max-games " + to_string(MAX_GAMES) + ")";
+    bool saved = writeOneMonth("counts_" + month + ".csv", month, st, status);
+    if (saved) remove(("partial_counts_" + month + ".csv").c_str());
+    lock_guard<mutex> lock(printLock);
+    cout << "[" << clockTime() << "] " << month << " finished (" << status << "): " << st.seen
+            << " games read" << (saved ? ", saved counts_" + month + ".csv" : ", COULD NOT SAVE") << endl;
+}
+
 // reads every game in one file; only the header lines matter, the moves are skipped
 void processFile(string path, Stats &st) {
+    string month = monthOf(path);
+    auto start = chrono::steady_clock::now();
     FileReader reader(path);
     string line;
     Game game;
+    bool stoppedEarly = false;
     while (reader.readLine(line)) {
         if (!line.empty() && line.back()=='\r') line.pop_back();
         if (line.empty()) continue;
@@ -100,19 +150,21 @@ void processFile(string path, Stats &st) {
             // reached the moves, so this game's headers are complete
             addGame(game, st);
             game = Game();
-            if (MAX_GAMES>0 && st.seen>=MAX_GAMES) return;
+            if (CHECKPOINT_EVERY>0 && st.seen % CHECKPOINT_EVERY==0) checkpoint(month, st, start);
+            if (MAX_GAMES>0 && st.seen>=MAX_GAMES) {
+                stoppedEarly = true;
+                break;
+            }
         }
     }
-    if (game.hasHeaders) addGame(game, st);
+    if (!stoppedEarly) {
+        if (game.hasHeaders) addGame(game, st);
+        st.problem = reader.problem;
+    }
+    if (st.problem!="") {
+        lock_guard<mutex> lock(printLock);
+        cout << "WARNING: " << month << ": " << st.problem << " after " << st.seen << " games" << endl;
+    }
+    if (CHECKPOINT_EVERY>0) finishFile(month, st);
 }
 
-// "lichess_db_standard_rated_2024-01.pgn.zst" -> "2024-01"
-string monthOf(string path) {
-    for (int i=0; i+7<=(int)path.size(); i++) {
-        string s = path.substr(i, 7);
-        bool isMonth = isdigit(s[0]) && isdigit(s[1]) && isdigit(s[2]) && isdigit(s[3]) &&
-                s[4]=='-' && isdigit(s[5]) && isdigit(s[6]);
-        if (isMonth) return s;
-    }
-    return path;
-}

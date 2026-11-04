@@ -47,7 +47,11 @@ vector<string> readArguments(signed argc, char *argv[]) {
             i++;
         }
         else if (arg=="--from-counts" && hasValue) {
-            COUNTS_IN = argv[i+1];
+            COUNTS_IN.push_back(argv[i+1]);
+            i++;
+        }
+        else if (arg=="--checkpoint-every" && hasValue) {
+            CHECKPOINT_EVERY = atoll(argv[i+1]);
             i++;
         }
         else files.push_back(arg);
@@ -70,6 +74,23 @@ void readGames(vector<string> &files, Stats &total, vector<string> &months, vect
     }
 }
 
+// several counts files are added together; returns false if any of them can't be used
+bool loadCounts(Stats &total, vector<string> &months, vector<Stats> &perFile) {
+    bool ok = true;
+    for (string path : COUNTS_IN) {
+        string status = readCounts(path, total, months, perFile);
+        if (status=="unreadable") ok = false;
+        else if (status!="" && status!="complete")
+            cout << "WARNING: " << path << " is not a complete month (" << status << ")\n";
+    }
+    set<string> unique(months.begin(), months.end());
+    if (unique.size()!=months.size()) {
+        cout << "ERROR: the same month is in more than one counts file, it would be counted twice\n";
+        ok = false;
+    }
+    return ok;
+}
+
 void printSummary(Stats &total, vector<string> &months, vector<Stats> &perFile) {
     for (int i=0; i<(int)months.size(); i++)
         cout << months[i] << ": " << perFile[i].seen << " games read, " << perFile[i].used << " used\n";
@@ -83,17 +104,36 @@ void printSummary(Stats &total, vector<string> &months, vector<Stats> &perFile) 
 // main has to return a real int, so it's "signed" here because of the #define
 signed main(signed argc, char *argv[]) {
     vector<string> files = readArguments(argc, argv);
-    if (files.empty() && COUNTS_IN=="") {
+    if (files.empty() && COUNTS_IN.empty()) {
         cout << "Usage: ./white_advantage [options] file1.pgn.zst [file2.pgn.zst ...]\n"
-                << "   or: ./white_advantage [options] --from-counts counts.csv\n";
+                << "   or: ./white_advantage [options] --from-counts counts.csv [--from-counts more.csv ...]\n";
         return 0;
     }
 
     Stats total;
     vector<string> months;
     vector<Stats> perFile;
-    if (COUNTS_IN!="") readCounts(COUNTS_IN, total, months, perFile);
+    if (!COUNTS_IN.empty()) {
+        if (!loadCounts(total, months, perFile)) return 1;
+    }
     else readGames(files, total, months, perFile);
+
+    // a file that was cut off must not pass silently as a full month
+    string problems = "";
+    for (int i=0; i<(int)perFile.size(); i++)
+        if (perFile[i].problem!="") problems += " " + months[i] + " (" + perFile[i].problem + ")";
+    if (problems!="")
+        cout << "\n*** WARNING: not every file was read to the end:" << problems
+                << ". The results below are INCOMPLETE. ***\n\n";
+
+    // save the counts first, so they're safe even if something later goes wrong
+    bool saved = true;
+    if (COUNTS_IN.empty() || COUNTS_IN.size()>1) {
+        string status = "complete";
+        if (problems!="") status = "incomplete:" + problems;
+        else if (MAX_GAMES>0) status = "test run (max-games " + to_string(MAX_GAMES) + ")";
+        saved = writeCounts("counts.csv", total, months, perFile, status);
+    }
 
     printSummary(total, months, perFile);
     printResults(total);
@@ -102,6 +142,8 @@ signed main(signed argc, char *argv[]) {
     printAnalysis(analysis);
     writeDashboard("dashboard.html", total, months);
     if (REPORT_FILE!="") writeReport(total, analysis, months, perFile);
-    if (COUNTS_IN=="") writeCounts("counts.csv", total, months, perFile);
+    cout.flush();
+    if (!saved) return 3;
+    if (problems!="") return 2;
     return 0;
 }

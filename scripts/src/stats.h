@@ -12,6 +12,7 @@ struct Stats {
     int seen = 0, used = 0;
     int noResult = 0, abandoned = 0, noRating = 0, bigGap = 0;
     map<string, int> families;   // games per opening family, like "Sicilian Defense"
+    string problem = "";         // set if the file could not be read to the end (not added up)
 
     Stats() {
         games = v4d(numOpenings(), v3d(NUM_SPEEDS, v2d(numBands(), v1d(numDiffs(), 0))));

@@ -21,10 +21,14 @@ class FileReader {
     string buffer;
     int pos = 0;
     bool finished = false;
+    size_t lastRet = 1;      // last ZSTD_decompressStream result; 0 = a frame ended cleanly
 
     bool readPlainChunk(string &chunk) {
         int n = fread(outBuffer.data(), 1, outBuffer.size(), file);
-        if (n<=0) return false;
+        if (n<=0) {
+            if (ferror(file)) problem = "read error";
+            return false;
+        }
         chunk.assign(outBuffer.data(), n);
         return true;
     }
@@ -33,13 +37,24 @@ class FileReader {
         while (true) {
             if (input.pos==input.size) {
                 int n = fread(inBuffer.data(), 1, inBuffer.size(), file);
-                if (n<=0) return drainZstd(chunk);
+                if (n<=0) {
+                    if (ferror(file)) problem = "read error";
+                    return drainZstd(chunk);
+                }
                 input.src = inBuffer.data();
                 input.size = n;
                 input.pos = 0;
             }
+            size_t before = input.pos;
             ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
-            ZSTD_decompressStream(zstd, &output, &input);
+            size_t ret = ZSTD_decompressStream(zstd, &output, &input);
+            // corrupt data: stop here instead of looping forever on the same bytes
+            if (ZSTD_isError(ret)) {
+                problem = string("zstd error: ") + ZSTD_getErrorName(ret);
+                return false;
+            }
+            // 0 means a frame has just ended cleanly; anything else means it's still going
+            if (output.pos>0 || input.pos!=before) lastRet = ret;
             // it sometimes needs more input before it can write anything
             if (output.pos>0) {
                 chunk.assign(outBuffer.data(), output.pos);
@@ -52,15 +67,32 @@ class FileReader {
     bool drainZstd(string &chunk) {
         ZSTD_outBuffer output = {outBuffer.data(), outBuffer.size(), 0};
         ZSTD_inBuffer empty = {nullptr, 0, 0};
-        ZSTD_decompressStream(zstd, &output, &empty);
-        if (output.pos==0) return false;
+        size_t ret = ZSTD_decompressStream(zstd, &output, &empty);
+        if (ZSTD_isError(ret)) {
+            problem = string("zstd error: ") + ZSTD_getErrorName(ret);
+            return false;
+        }
+        if (output.pos==0) {
+            // the file ended in the middle of a frame: the download was cut off
+            if (lastRet!=0 && problem=="") problem = "file ends mid-stream (download cut off?)";
+            return false;
+        }
+        lastRet = ret;
         chunk.assign(outBuffer.data(), output.pos);
         return true;
     }
 
 public:
+    // empty if the whole file was read without problems
+    string problem = "";
+
     FileReader(string path) {
         file = fopen(path.c_str(), "rb");
+        if (!file) {
+            problem = "could not open " + path;
+            finished = true;
+            return;
+        }
         compressed = path.size()>4 && path.substr(path.size() - 4)==".zst";
         outBuffer.resize(1 << 20);
         if (compressed) {
@@ -95,7 +127,7 @@ public:
             buffer = buffer.substr(pos);
             pos = 0;
             string chunk;
-            bool got = compressed ? readZstdChunk(chunk) : readPlainChunk(chunk);
+            bool got = file && (compressed ? readZstdChunk(chunk) : readPlainChunk(chunk));
             if (got) buffer += chunk;
             else finished = true;
         }
